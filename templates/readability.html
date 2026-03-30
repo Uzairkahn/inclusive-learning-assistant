@@ -1,0 +1,569 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-2xl p-8 shadow-lg mb-8">
+    <div class="text-center">
+      <h1 class="text-4xl font-bold mb-4"> Readability & Accessibility</h1>
+      <p class="text-purple-100 text-lg max-w-3xl mx-auto">
+        Customize text appearance for comfortable reading. Perfect for dyslexic readers and visually impaired students.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-8 mb-8">
+    <!-- Controls Panel -->
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-2xl shadow-md p-6 sticky top-6">
+        <h3 class="text-xl font-semibold text-slate-800 mb-6 flex items-center gap-2">
+          <span>⚙️</span> Accessibility Settings
+        </h3>
+
+        <!-- Font Controls -->
+        <div class="space-y-6">
+          <div class="bg-slate-50 rounded-xl p-4">
+            <h4 class="font-medium text-slate-700 mb-4 flex items-center gap-2">
+              <span>🔤</span> Text Appearance
+            </h4>
+            
+            <div class="space-y-4">
+              <!-- Font Size -->
+              <div>
+                <div class="flex justify-between items-center mb-2">
+                  <label class="text-sm text-slate-600">Font Size</label>
+                  <span class="text-sm font-medium text-sky-600" id="fontSizeValue">16px</span>
+                </div>
+                <input id="fontSize" type="range" min="12" max="28" value="16" 
+                       class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider">
+              </div>
+
+              <!-- Line Spacing -->
+              <div>
+                <div class="flex justify-between items-center mb-2">
+                  <label class="text-sm text-slate-600">Line Spacing</label>
+                  <span class="text-sm font-medium text-sky-600" id="spacingValue">1.4</span>
+                </div>
+                <input id="lineSpacing" type="range" min="1.0" max="2.5" step="0.1" value="1.4" 
+                       class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider">
+              </div>
+
+              <!-- Font Family -->
+              <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200">
+                <div>
+                  <p class="text-sm font-medium text-slate-700">Dyslexia-Friendly Font</p>
+                  <p class="text-xs text-slate-500">OpenDyslexic Style</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input id="dyslexicToggle" type="checkbox" class="sr-only peer">
+                  <div class="w-11 h-6 bg-slate-200 peer-focus:ring-2 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Color Themes -->
+          <div class="bg-slate-50 rounded-xl p-4">
+            <h4 class="font-medium text-slate-700 mb-4 flex items-center gap-2">
+              <span>🎨</span> Color Theme
+            </h4>
+            
+            <div class="grid grid-cols-2 gap-3">
+              <div class="text-center cursor-pointer group" onclick="selectTheme('default')">
+                <div class="w-full h-12 bg-white border-2 border-slate-300 rounded-lg mb-2 group-hover:border-sky-400 transition-colors theme-option" data-theme="default"></div>
+                <span class="text-xs text-slate-600">Default</span>
+              </div>
+              <div class="text-center cursor-pointer group" onclick="selectTheme('soft-blue')">
+                <div class="w-full h-12 bg-blue-50 border-2 border-slate-300 rounded-lg mb-2 group-hover:border-sky-400 transition-colors theme-option" data-theme="soft-blue"></div>
+                <span class="text-xs text-slate-600">Soft Blue</span>
+              </div>
+              <div class="text-center cursor-pointer group" onclick="selectTheme('soft-yellow')">
+                <div class="w-full h-12 bg-amber-50 border-2 border-slate-300 rounded-lg mb-2 group-hover:border-sky-400 transition-colors theme-option" data-theme="soft-yellow"></div>
+                <span class="text-xs text-slate-600">Soft Yellow</span>
+              </div>
+              <div class="text-center cursor-pointer group" onclick="selectTheme('high-contrast')">
+                <div class="w-full h-12 bg-black border-2 border-slate-300 rounded-lg mb-2 group-hover:border-sky-400 transition-colors theme-option" data-theme="high-contrast"></div>
+                <span class="text-xs text-slate-600">High Contrast</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex gap-3 pt-4">
+            <button onclick="applySettings()" 
+                    class="flex-1 py-3 bg-gradient-to-r from-sky-500 to-sky-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-semibold">
+              Apply Settings
+            </button>
+            <button onclick="resetSettings()" 
+                    class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors font-medium">
+              Reset All
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview Panel -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-2xl shadow-md p-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <h3 class="text-xl font-semibold text-slate-800 flex items-center gap-2">
+            <span></span> Live Preview
+          </h3>
+          
+          <!-- Sample Selector -->
+          <div class="flex gap-2">
+            <button onclick="loadSample('english')" 
+                    class="px-4 py-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">
+              📚 English
+            </button>
+            <button onclick="loadSample('urdu')" 
+                    class="px-4 py-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">
+              🌏 Urdu
+            </button>
+            <button onclick="loadSample('technical')" 
+                    class="px-4 py-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">
+              💻 Technical
+            </button>
+          </div>
+        </div>
+
+        <!-- Preview Content -->
+        <div id="previewBox" class="p-8 border-2 border-slate-200 rounded-xl min-h-[600px] transition-all duration-300 bg-white overflow-y-auto">
+          <!-- Content will be loaded by JavaScript -->
+          <div class="text-center py-20 text-slate-400">
+            <div class="text-4xl mb-4">📝</div>
+            <p class="text-lg font-medium">Select a sample text to see preview</p>
+            <p class="text-sm mt-2">Adjust settings on the left to see real-time changes</p>
+          </div>
+        </div>
+
+        <!-- Preview Info -->
+        <div class="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+          <div class="flex items-start gap-3">
+            <span class="text-blue-500 text-xl mt-1">💡</span>
+            <div>
+              <p class="font-medium text-blue-800">Real-time Preview</p>
+              <p class="text-sm text-blue-600 mt-1">All changes apply instantly. Find the perfect reading settings for your comfort.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features Grid -->
+  <div class="bg-white rounded-2xl shadow-md p-8 mb-8">
+    <h3 class="text-2xl font-bold text-slate-800 mb-8 text-center">Designed for Everyone</h3>
+    
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-25 rounded-2xl border border-blue-100 hover:shadow-md transition-all duration-300">
+        <div class="text-3xl mb-4">👁️</div>
+        <h4 class="text-lg font-semibold text-slate-800 mb-3">Visual Comfort</h4>
+        <p class="text-slate-600 text-sm leading-relaxed">Adjustable font sizes, spacing, and colors to reduce eye strain and make reading comfortable for extended periods.</p>
+      </div>
+      
+      <div class="text-center p-6 bg-gradient-to-br from-green-50 to-green-25 rounded-2xl border border-green-100 hover:shadow-md transition-all duration-300">
+        <div class="text-3xl mb-4">🧠</div>
+        <h4 class="text-lg font-semibold text-slate-800 mb-3">Dyslexia Support</h4>
+        <p class="text-slate-600 text-sm leading-relaxed">Specialized fonts and color schemes designed specifically to help readers with dyslexia and reading difficulties.</p>
+      </div>
+      
+      <div class="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-25 rounded-2xl border border-purple-100 hover:shadow-md transition-all duration-300">
+        <div class="text-3xl mb-4">🎯</div>
+        <h4 class="text-lg font-semibold text-slate-800 mb-3">High Contrast</h4>
+        <p class="text-slate-600 text-sm leading-relaxed">Enhanced contrast modes for users with low vision, color blindness, or those who prefer bold, clear text.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- How to Use -->
+  <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200">
+    <h3 class="text-xl font-semibold text-slate-800 mb-4 text-center">How to Use Readability Settings</h3>
+    <div class="grid md:grid-cols-2 gap-6 text-sm text-slate-600">
+      <div class="space-y-3">
+        <div class="flex items-start gap-3">
+          <span class="text-sky-500 font-bold">1</span>
+          <p>Select a sample text from English, Urdu, or Technical options</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="text-sky-500 font-bold">2</span>
+          <p>Adjust font size and line spacing using the sliders</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="text-sky-500 font-bold">3</span>
+          <p>Toggle dyslexia-friendly font if needed</p>
+        </div>
+      </div>
+      <div class="space-y-3">
+        <div class="flex items-start gap-3">
+          <span class="text-sky-500 font-bold">4</span>
+          <p>Choose a color theme that suits your reading comfort</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="text-sky-500 font-bold">5</span>
+          <p>Click "Apply Settings" to see all changes</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="text-sky-500 font-bold">6</span>
+          <p>Use "Reset All" to return to default settings</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Sample texts database
+const samples = {
+  english: {
+    title: "English Literature Sample",
+    content: `# The Importance of Education
+
+Education is the process of facilitating learning, or the acquisition of knowledge, skills, values, beliefs, and habits. Educational methods include teaching, training, storytelling, discussion and directed research.
+
+## The Transformative Power of Learning
+
+Education transforms lives. It empowers individuals to break the cycle of poverty, reduces inequalities, and achieves gender equality. It enables people to lead healthier and more sustainable lives, and it is essential for fostering tolerance and peaceful societies.
+
+### Key Benefits of Learning
+
+1. **Personal Development**: Education helps individuals develop critical thinking and problem-solving skills that are essential for personal and professional growth.
+
+2. **Career Opportunities**: Better education often leads to better employment prospects, higher earning potential, and greater career mobility.
+
+3. **Social Awareness**: Educated individuals tend to be more aware of social issues, more engaged in civic activities, and contribute more positively to society.
+
+The quick brown fox jumps over the lazy dog. This classic sentence contains all letters of the English alphabet and is often used for typing practice, font testing, and readability assessment in design and development workflows.`
+  },
+
+  urdu: {
+    title: "تعلیم کی اہمیت اور افادیت",
+    content: `# تعلیم کی اہمیت
+
+تعلیم انسان کی شخصیت کی تعمیر اور ترقی میں بنیادی کردار ادا کرتی ہے۔ یہ نہ صرف علم حاصل کرنے کا ذریعہ ہے بلکہ یہ انسان کو معاشرے کا مفید اور ذمہ دار شہر بناتی ہے۔
+
+## علم کی تبدیلی کی طاقت
+
+تعلیم زندگیاں بدل دیتی ہے۔ یہ افراد کو غربت کے چکر کو توڑنے، عدم مساوات کو کم کرنے اور صنفی مساوات حاصل کرنے کے قابل بناتی ہے۔ یہ لوگوں کو صحت مند اور پائیدار زندگی گزارنے کے قابل بناتی ہے۔
+
+### تعلیم کے کلیدی فوائد
+
+۱. **ذاتی ترقی**: تعلیم انسان کی سوچنے سمجھنے کی صلاحیتوں کو بہتر بناتی ہے جو ذاتی اور پیشہ ورانہ ترقی کے لیے ضروری ہیں۔
+
+۲. **کیریئر کے مواقع**: بہتر تعلیم بہتر روزگار کے مواقع، زیادہ کمائی کی صلاحیت اور کیریئر میں زیادہ نقل و حرکت فراہم کرتی ہے۔
+
+۳. **معاشرتی بہبود**: تعلیم یافتہ افراد معاشرے کی بہتری میں زیادہ حصہ ڈالتے ہیں اور سماجی مسائل سے زیادہ آگاہ ہوتے ہیں۔
+
+یہ اردو زبان کی مثال ہے جو دکھاتی ہے کہ متن کیسے دکھائی دے گا۔ یہ دائیں سے بائیں لکھی جانے والی زبانوں کے لیے اہم ہے اور متن کی سمت کو صحیح طریقے سے ظاہر کرتی ہے۔`
+  },
+
+  technical: {
+    title: "Artificial Intelligence in Modern Computing",
+    content: `# Artificial Intelligence and Machine Learning
+
+Artificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.
+
+## The Evolution of AI Systems
+
+Modern AI systems have evolved from simple rule-based algorithms to complex neural networks capable of learning from vast amounts of data. This evolution has enabled breakthroughs in natural language processing, computer vision, and autonomous systems.
+
+### Core Concepts in AI
+
+**Machine Learning**: A subset of AI that focuses on the development of computer programs that can access data and use it to learn for themselves. The learning process begins with observations or data to look for patterns and make better decisions.
+
+**Neural Networks**: Computing systems inspired by the biological neural networks that constitute animal brains. Such systems learn to perform tasks by considering examples, generally without being programmed with any task-specific rules.
+
+**Natural Language Processing**: The ability of a computer program to understand human language as it is spoken and written. NLP enables computers to read text, hear speech, interpret it, measure sentiment, and determine which parts are important.`
+  }
+};
+
+let currentTheme = 'default';
+let currentSettings = {};
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', function() {
+  loadSample('english');
+  updateSliderValues();
+  selectTheme('default');
+});
+
+// Update slider display values
+function updateSliderValues() {
+  document.getElementById('fontSizeValue').textContent = document.getElementById('fontSize').value + 'px';
+  document.getElementById('spacingValue').textContent = document.getElementById('lineSpacing').value;
+}
+
+// Load sample text
+function loadSample(type) {
+  const sample = samples[type];
+  const previewBox = document.getElementById('previewBox');
+  
+  let contentHTML = '';
+  
+  // Process content line by line
+  const lines = sample.content.split('\n');
+  lines.forEach(line => {
+    if (line.startsWith('# ')) {
+      contentHTML += `<h1 class="text-3xl font-bold mt-8 mb-6 text-slate-800 border-b border-slate-200 pb-2">${line.substring(2)}</h1>`;
+    } else if (line.startsWith('## ')) {
+      contentHTML += `<h2 class="text-2xl font-semibold mt-6 mb-4 text-slate-700">${line.substring(3)}</h2>`;
+    } else if (line.startsWith('### ')) {
+      contentHTML += `<h3 class="text-xl font-medium mt-5 mb-3 text-slate-600">${line.substring(4)}</h3>`;
+    } else if (line.startsWith('1. ') || line.startsWith('۱. ')) {
+      contentHTML += `<li class="ml-6 mb-3 text-slate-700 leading-relaxed">${line.substring(3)}</li>`;
+    } else if (line.startsWith('**') && line.endsWith('**')) {
+      contentHTML += `<p class="mb-4"><strong class="font-bold text-slate-800">${line.substring(2, line.length-2)}</strong></p>`;
+    } else if (line.trim() === '') {
+      contentHTML += `<div class="h-4"></div>`;
+    } else {
+      contentHTML += `<p class="mb-4 text-slate-700 leading-relaxed">${line}</p>`;
+    }
+  });
+  
+  previewBox.innerHTML = `
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-4xl font-bold mb-8 text-slate-900 text-center border-b border-slate-300 pb-4">${sample.title}</h1>
+      <div class="prose max-w-none text-justify">
+        ${contentHTML}
+      </div>
+    </div>
+  `;
+  
+  // Re-apply current settings
+  if (Object.keys(currentSettings).length > 0) {
+    applyCurrentSettings();
+  }
+}
+
+// Select color theme
+function selectTheme(theme) {
+  currentTheme = theme;
+  const previewBox = document.getElementById('previewBox');
+  
+  // Remove selection from all theme options
+  document.querySelectorAll('.theme-option').forEach(option => {
+    option.classList.remove('border-sky-500', 'border-3');
+    option.classList.add('border-slate-300');
+  });
+  
+  // Add selection to clicked option
+  const selectedOption = document.querySelector(`[data-theme="${theme}"]`);
+  if (selectedOption) {
+    selectedOption.classList.remove('border-slate-300');
+    selectedOption.classList.add('border-sky-500', 'border-3');
+  }
+  
+  // Update preview box styles based on theme
+  switch(theme) {
+    case 'default':
+      previewBox.style.background = '#ffffff';
+      previewBox.style.color = '#1f2937';
+      break;
+    case 'soft-blue':
+      previewBox.style.background = '#f0f9ff';
+      previewBox.style.color = '#1f2937';
+      break;
+    case 'soft-yellow':
+      previewBox.style.background = '#fefce8';
+      previewBox.style.color = '#1f2937';
+      break;
+    case 'high-contrast':
+      previewBox.style.background = '#000000';
+      previewBox.style.color = '#ffffff';
+      break;
+  }
+  
+  currentSettings.theme = theme;
+}
+
+// Apply all settings
+function applySettings() {
+  const fontSize = document.getElementById('fontSize').value;
+  const lineSpacing = document.getElementById('lineSpacing').value;
+  const useDyslexicFont = document.getElementById('dyslexicToggle').checked;
+  
+  currentSettings = {
+    fontSize,
+    lineSpacing,
+    useDyslexicFont,
+    theme: currentTheme
+  };
+  
+  applyCurrentSettings();
+  showNotification('Accessibility settings applied successfully!');
+}
+
+// Apply current settings from memory
+function applyCurrentSettings() {
+  const previewBox = document.getElementById('previewBox');
+  
+  if (currentSettings.fontSize) {
+    previewBox.style.fontSize = currentSettings.fontSize + 'px';
+  }
+  
+  if (currentSettings.lineSpacing) {
+    previewBox.style.lineHeight = currentSettings.lineSpacing;
+  }
+  
+  if (currentSettings.useDyslexicFont) {
+    previewBox.style.fontFamily = '"Comic Sans MS", " Atkinson Hyperlegible", Arial, sans-serif';
+    previewBox.style.fontWeight = 'normal';
+    previewBox.style.letterSpacing = '0.5px';
+  } else {
+    previewBox.style.fontFamily = 'Arial, sans-serif';
+    previewBox.style.fontWeight = 'normal';
+    previewBox.style.letterSpacing = 'normal';
+  }
+  
+  if (currentSettings.theme) {
+    selectTheme(currentSettings.theme);
+  }
+}
+
+// Reset all settings
+function resetSettings() {
+  document.getElementById('fontSize').value = 16;
+  document.getElementById('lineSpacing').value = 1.4;
+  document.getElementById('dyslexicToggle').checked = false;
+  
+  updateSliderValues();
+  selectTheme('default');
+  
+  currentSettings = {};
+  applyCurrentSettings();
+  
+  showNotification('All settings reset to default values');
+}
+
+// Show notification
+function showNotification(message) {
+  // Remove existing notification
+  const existingNotification = document.querySelector('.notification-toast');
+  if (existingNotification) {
+    existingNotification.remove();
+  }
+  
+  const notification = document.createElement('div');
+  notification.className = 'notification-toast fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-32 transition-transform duration-300';
+  notification.textContent = message;
+  
+  document.body.appendChild(notification);
+  
+  // Animate in
+  setTimeout(() => {
+    notification.classList.remove('translate-x-32');
+  }, 100);
+  
+  // Animate out after 3 seconds
+  setTimeout(() => {
+    notification.classList.add('translate-x-32');
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 300);
+  }, 3000);
+}
+
+// Event listeners for real-time updates
+document.getElementById('fontSize').addEventListener('input', updateSliderValues);
+document.getElementById('lineSpacing').addEventListener('input', updateSliderValues);
+</script>
+
+<style>
+/* Custom slider styles */
+.slider {
+  appearance: none;
+  -webkit-appearance: none;
+  background: linear-gradient(to right, #e5e7eb, #0ea5e9);
+  border-radius: 10px;
+  height: 8px;
+  outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  background: #0ea5e9;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid #ffffff;
+  box-shadow: 0 4px 8px rgba(14, 165, 233, 0.3);
+  transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 12px rgba(14, 165, 233, 0.4);
+}
+
+/* Preview box styling */
+#previewBox {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1.6;
+}
+
+/* Custom scrollbar for preview */
+#previewBox::-webkit-scrollbar {
+  width: 10px;
+}
+
+#previewBox::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 6px;
+}
+
+#previewBox::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+  border: 2px solid #f8fafc;
+}
+
+#previewBox::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Theme option selection */
+.theme-option {
+  transition: all 0.2s ease;
+}
+
+.theme-option:hover {
+  transform: scale(1.05);
+}
+
+/* Notification animation */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .sticky {
+    position: relative;
+    top: 0;
+  }
+}
+</style>
+{% endblock %}

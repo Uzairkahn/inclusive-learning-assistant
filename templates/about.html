@@ -1,0 +1,242 @@
+<!-- Extends base.html template - inherits navbar, footer, and global styling -->
+{% extends "base.html" %}
+{% block content %}
+<!-- Main content container with max-width for optimal readability -->
+<div class="max-w-4xl mx-auto">
+  <!-- =============== HEADER SECTION =============== -->
+  <!-- Dark gradient banner with project title and mission statement -->
+  <div class="bg-gradient-to-r from-slate-900 to-slate-700 text-white rounded-2xl p-12 shadow-lg mb-8">
+    <div class="text-center">
+      <!-- Project Title: Main heading of the page -->
+      <h1 class="text-5xl font-bold mb-4 tracking-tight">Inclusive Learning Assistant</h1>
+      <!-- Subtitle: Brief description of the project purpose and scope -->
+      <p class="text-slate-200 text-xl max-w-3xl mx-auto leading-relaxed">
+        An advanced AI-powered platform engineered to ensure inclusive access to educational materials for all learners, with particular emphasis on students with diverse accessibility needs.
+      </p>
+    </div>
+  </div>
+
+  <!-- =============== OVERVIEW & FEATURES SECTION =============== -->
+  <!-- Two-column layout: Left (Project Info), Right (Core Features) -->
+  <div class="grid md:grid-cols-2 gap-8 mb-8">
+    <!-- LEFT COLUMN: Project Overview & Mission -->
+    <div class="bg-white rounded-2xl shadow-md p-8 border-l-4 border-slate-900">
+      <h2 class="text-2xl font-bold text-slate-900 mb-6">Project Overview</h2>
+      <div class="space-y-4 text-slate-700 leading-relaxed">
+        <!-- Description of project scope and approach -->
+        <p>
+          The <span class="font-semibold text-slate-900">Inclusive Learning Assistant</span> is a comprehensive final-year academic initiative that harnesses Artificial Intelligence and Natural Language Processing to develop accessible learning experiences for students with diverse needs.
+        </p>
+        <!-- Main capabilities of the platform -->
+        <p>
+          Our platform provides intelligent tools including Text-to-Speech synthesis, Speech-to-Text recognition, AI-powered content summarization, and multi-language support to ensure every student can access and comprehend educational materials in their preferred format.
+        </p>
+        <!-- Mission Statement Box -->
+        <div class="bg-slate-50 rounded-xl p-6 border border-slate-200 mt-4">
+          <h3 class="font-semibold text-slate-900 mb-3">Mission Statement</h3>
+          <p class="text-slate-700 text-sm leading-relaxed">
+            To bridge the digital accessibility gap in modern education and empower students with disabilities through innovative, AI-driven solutions that foster inclusive learning environments.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Core Features Grid -->
+    <div class="bg-white rounded-2xl shadow-md p-8 border-l-4 border-emerald-600">
+      <h2 class="text-2xl font-bold text-slate-900 mb-6">Core Features</h2>
+      <!-- 2x3 grid of feature cards -->
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Feature 1: Text-to-Speech -->
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-300 transition">
+          <h4 class="font-semibold text-slate-900 mb-1 text-sm">Text-to-Speech Synthesis</h4>
+          <p class="text-xs text-slate-600">Convert written content to natural-sounding audio</p>
+        </div>
+        <!-- Feature 2: Speech-to-Text -->
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-300 transition">
+          <h4 class="font-semibold text-slate-900 mb-1 text-sm">Speech-to-Text Recognition</h4>
+          <p class="text-xs text-slate-600">Transcribe spoken words to written text</p>
+        </div>
+        <!-- Feature 3: Document Processing -->
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-300 transition">
+          <h4 class="font-semibold text-slate-900 mb-1 text-sm">Document Processing</h4>
+          <p class="text-xs text-slate-600">Extract and process PDF, DOCX, and PPTX files</p>
+        </div>
+        <!-- Feature 4: AI Summarization -->
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-300 transition">
+          <h4 class="font-semibold text-slate-900 mb-1 text-sm">AI Summarization</h4>
+          <p class="text-xs text-slate-600">Generate concise summaries of lengthy content</p>
+        </div>
+        <!-- Feature 5: Accessibility Standards -->
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-300 transition">
+          <h4 class="font-semibold text-slate-900 mb-1 text-sm">Accessibility Standards</h4>
+          <p class="text-xs text-slate-600">WCAG compliant design for all users</p>
+        </div>
+        <!-- Feature 6: Multi-Language Support -->
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-300 transition">
+          <h4 class="font-semibold text-slate-900 mb-1 text-sm">Multi-Language Support</h4>
+          <p class="text-xs text-slate-600">Content translation across multiple languages</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== TEAM SECTION =============== -->
+  <!-- Displays information about the three main developers -->
+  <div class="bg-white rounded-2xl shadow-md p-8 mb-8">
+    <h2 class="text-2xl font-bold text-slate-900 mb-8">Development Team</h2>
+    
+    <!-- Three-column grid for team members -->
+    <div class="grid md:grid-cols-3 gap-6">
+      <!-- Team Member 1: Uzair Khan -->
+      <div class="p-6 bg-slate-50 rounded-xl hover:shadow-md transition-all duration-300 border border-slate-200">
+        <!-- Avatar with initials -->
+        <div class="w-14 h-14 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-base mx-auto mb-4">
+          UK
+        </div>
+        <!-- Member name, role, and ID -->
+        <h3 class="font-semibold text-slate-900 text-lg text-center">Uzair Khan</h3>
+        <p class="text-slate-700 text-sm text-center mb-1">Full Stack Developer</p>
+        <p class="text-slate-500 text-xs text-center font-mono mb-3">CMS-ID: 023-22-0284</p>
+        <!-- Expertise badges -->
+        <div class="flex justify-center gap-2">
+          <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded font-medium">Backend</span>
+          <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded font-medium">AI/ML</span>
+        </div>
+      </div>
+
+      <!-- Team Member 2: Sunny Kumar -->
+      <div class="p-6 bg-slate-50 rounded-xl hover:shadow-md transition-all duration-300 border border-slate-200">
+        <!-- Avatar with initials -->
+        <div class="w-14 h-14 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-base mx-auto mb-4">
+          SK
+        </div>
+        <!-- Member name, role, and ID -->
+        <h3 class="font-semibold text-slate-900 text-lg text-center">Sunny Kumar</h3>
+        <p class="text-slate-700 text-sm text-center mb-1">Frontend Developer</p>
+        <p class="text-slate-500 text-xs text-center font-mono mb-3">CMS-ID: 023-22-0245</p>
+        <!-- Expertise badges -->
+        <div class="flex justify-center gap-2">
+          <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded font-medium">UI/UX</span>
+          <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded font-medium">Design</span>
+        </div>
+      </div>
+
+      <!-- Team Member 3: Syed Mashhood Mehmood -->
+      <div class="p-6 bg-slate-50 rounded-xl hover:shadow-md transition-all duration-300 border border-slate-200">
+        <!-- Avatar with initials -->
+        <div class="w-14 h-14 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-base mx-auto mb-4">
+          SM
+        </div>
+        <!-- Member name, role, and ID -->
+        <h3 class="font-semibold text-slate-900 text-lg text-center">Syed Mashhood Mehmood</h3>
+        <p class="text-slate-700 text-sm text-center mb-1">AI Engineer</p>
+        <p class="text-slate-500 text-xs text-center font-mono mb-3">CMS-ID: 023-22-0247</p>
+        <!-- Expertise badges -->
+        <div class="flex justify-center gap-2">
+          <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded font-medium">ML</span>
+          <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded font-medium">NLP</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== SUPERVISOR & INSTITUTION SECTION =============== -->
+  <!-- Two-column layout: Left (Project Supervisor), Right (University Info) -->
+  <div class="grid md:grid-cols-2 gap-8 mt-8">
+    <!-- LEFT COLUMN: Project Supervisor Information -->
+    <div class="bg-white rounded-2xl shadow-md p-8 border-l-4 border-amber-600">
+      <h2 class="text-2xl font-bold text-slate-900 mb-6">Project Supervisor</h2>
+      <!-- Supervisor card with avatar and details -->
+      <div class="flex items-start gap-4 p-5 bg-amber-50 rounded-xl border border-amber-200">
+        <!-- Avatar placeholder -->
+        <div class="w-14 h-14 bg-slate-900 rounded-full flex items-center justify-center text-white text-xl flex-shrink-0">
+          Dr.
+        </div>
+        <!-- Supervisor information -->
+        <div>
+          <h3 class="font-semibold text-slate-900 text-lg">Dr. Javed Ahmed Shahani</h3>
+          <p class="text-slate-700 text-sm">Project Supervisor & Academic Mentor</p>
+          <p class="text-slate-600 text-xs">Computer Science Department</p>
+        </div>
+      </div>
+      <!-- Supervisor description -->
+      <p class="text-slate-700 mt-5 text-sm leading-relaxed">
+        This project has been developed under the expert guidance and supervision of Dr. Javed Ahmed Shahani, representing the culmination of our academic journey in Computer Science.
+      </p>
+    </div>
+
+    <!-- RIGHT COLUMN: University and Project Timeline Information -->
+    <div class="bg-white rounded-2xl shadow-md p-8 border-l-4 border-sky-600">
+      <h2 class="text-2xl font-bold text-slate-900 mb-6">Institution</h2>
+      <!-- University information card -->
+      <div class="flex items-start gap-4 p-5 bg-sky-50 rounded-xl mb-5 border border-sky-200">
+        <!-- University avatar -->
+        <div class="w-14 h-14 bg-slate-900 rounded-full flex items-center justify-center text-white text-lg flex-shrink-0">
+          🎓
+        </div>
+        <!-- University details -->
+        <div>
+          <h3 class="font-semibold text-slate-900 text-lg">Sukkur IBA University</h3>
+          <p class="text-slate-700 text-sm">Computer Science Department</p>
+          <p class="text-slate-600 text-xs">Final Year Project 2025</p>
+        </div>
+      </div>
+      <!-- Project timeline details -->
+      <div class="bg-slate-50 rounded-xl p-5 border border-slate-200">
+        <h4 class="font-semibold text-slate-900 mb-4">Project Timeline</h4>
+        <!-- Timeline entries with dividers -->
+        <div class="space-y-3 text-sm text-slate-700">
+          <!-- Start Date -->
+          <div class="flex justify-between items-center pb-3 border-b border-slate-200">
+            <span>Start Date</span>
+            <span class="font-semibold text-slate-900">September 2024</span>
+          </div>
+          <!-- Expected Completion -->
+          <div class="flex justify-between items-center pb-3 border-b border-slate-200">
+            <span>Expected Completion</span>
+            <span class="font-semibold text-slate-900">June 2025</span>
+          </div>
+          <!-- Batch Year -->
+          <div class="flex justify-between items-center">
+            <span>Batch Year</span>
+            <span class="font-semibold text-slate-900">2022</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== TECHNOLOGY STACK SECTION =============== -->
+  <!-- Displays the tools, frameworks, and technologies used in the project -->
+  <div class="bg-white rounded-2xl shadow-md p-8 mt-8">
+    <h2 class="text-2xl font-bold text-slate-900 mb-8">Technology Stack</h2>
+    <!-- Four-column grid showing main technology categories -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <!-- Backend Technology -->
+      <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-300 transition text-center">
+        <div class="text-3xl mb-2 font-bold text-slate-900">Python</div>
+        <p class="font-medium text-slate-700">Backend Framework</p>
+        <p class="text-xs text-slate-600 mt-1">Flask, NLP</p>
+      </div>
+      <!-- Machine Learning & AI Technology -->
+      <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-300 transition text-center">
+        <div class="text-3xl mb-2 font-bold text-slate-900">AI/ML</div>
+        <p class="font-medium text-slate-700">Machine Learning</p>
+        <p class="text-xs text-slate-600 mt-1">Transformers, PyTorch</p>
+      </div>
+      <!-- Frontend Technology -->
+      <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-300 transition text-center">
+        <div class="text-3xl mb-2 font-bold text-slate-900">Web</div>
+        <p class="font-medium text-slate-700">Frontend Layer</p>
+        <p class="text-xs text-slate-600 mt-1">HTML, CSS, JavaScript</p>
+      </div>
+      <!-- Database Technology -->
+      <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-300 transition text-center">
+        <div class="text-3xl mb-2 font-bold text-slate-900">DB</div>
+        <p class="font-medium text-slate-700">Data Persistence</p>
+        <p class="text-xs text-slate-600 mt-1">SQLite</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

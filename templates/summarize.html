@@ -1,0 +1,455 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-2xl shadow-md p-6 mb-6">
+    <h2 class="text-2xl font-bold text-slate-800 mb-2">AI Summarization and Translation</h2>
+    <p class="text-slate-600">Get concise summaries of long content and prepare text for easier learning.</p>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-8">
+    <div class="bg-white rounded-2xl shadow-md p-6">
+      <h3 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+        <span>Input Text</span>
+      </h3>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2" for="sourceText">Paste Text</label>
+          <textarea
+            id="sourceText"
+            rows="8"
+            class="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-sky-500 transition-colors resize-none"
+            placeholder="Paste your long text here for summarization..."
+          ></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Upload File</label>
+          <div
+            id="uploadDropZone"
+            class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-sky-400 transition-colors cursor-pointer"
+          >
+            <div class="text-sm font-medium text-slate-700 mb-2">Extract text from a document</div>
+            <p class="text-slate-600 text-sm mb-3">Choose or drop a PDF, DOCX, or TXT file and its text will be loaded into the textarea automatically.</p>
+            <input id="documentUpload" type="file" accept=".txt,.pdf,.docx" class="hidden" />
+            <button
+              id="chooseFileBtn"
+              type="button"
+              class="px-4 py-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors text-sm"
+            >
+              Choose File
+            </button>
+            <p id="selectedFileName" class="text-xs text-slate-500 mt-3">No file selected</p>
+            <p class="text-xs text-slate-400 mt-1">TXT, PDF, DOCX supported</p>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center text-sm text-slate-500">
+          <span id="charCount">0 characters</span>
+          <button id="clearTextBtn" type="button" class="text-sky-600 hover:text-sky-700 font-medium">
+            Clear Text
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-md p-6">
+      <h3 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+        <span>Processing Options</span>
+      </h3>
+
+      <div class="space-y-6">
+        <div class="grid grid-cols-2 gap-4">
+          <button
+            id="summBtn"
+            type="button"
+            class="py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-semibold flex items-center justify-center gap-2"
+          >
+            <span>Summarize</span>
+          </button>
+          <button
+            id="transBtn"
+            type="button"
+            class="py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-semibold flex items-center justify-center gap-2"
+          >
+            <span>Translate to Urdu</span>
+          </button>
+        </div>
+
+        <div id="processStatus" class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+          <div class="flex items-center gap-3">
+            <span class="text-blue-500 font-semibold">i</span>
+            <div>
+              <p class="font-medium text-blue-800">Ready to process</p>
+              <p class="text-sm text-blue-600">Enter text to get started</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Result</label>
+          <div id="resultBox" class="mt-2 p-4 bg-slate-50 rounded-xl min-h-[200px] border border-slate-200">
+            <p class="text-slate-500 text-center py-8">Your summarized text will appear here.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" class="p-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-1 text-xs font-medium">
+            Copy
+          </button>
+          <button type="button" class="p-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-1 text-xs font-medium">
+            Save
+          </button>
+          <button type="button" class="p-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-1 text-xs font-medium">
+            Speak
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-8 bg-white rounded-2xl shadow-md p-6">
+    <h3 class="text-lg font-semibold text-slate-800 mb-4">AI-Powered Features</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="flex items-start gap-3">
+        <div>
+          <p class="font-medium text-slate-800">Smart Summarization</p>
+          <p class="text-sm text-slate-600">Extract key points from long documents with a transformer model.</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-3">
+        <div>
+          <p class="font-medium text-slate-800">Future Translation Flow</p>
+          <p class="text-sm text-slate-600">The page still reserves space for translation once a backend endpoint is added.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const sourceText = document.getElementById('sourceText');
+  const charCount = document.getElementById('charCount');
+  const clearTextBtn = document.getElementById('clearTextBtn');
+  const summBtn = document.getElementById('summBtn');
+  const transBtn = document.getElementById('transBtn');
+  const uploadDropZone = document.getElementById('uploadDropZone');
+  const documentUpload = document.getElementById('documentUpload');
+  const chooseFileBtn = document.getElementById('chooseFileBtn');
+  const selectedFileName = document.getElementById('selectedFileName');
+  const processStatus = document.getElementById('processStatus');
+  const resultBox = document.getElementById('resultBox');
+  const summarizeButtonMarkup = summBtn.innerHTML;
+  const translateButtonMarkup = transBtn.innerHTML;
+  const chooseFileButtonMarkup = chooseFileBtn.innerHTML;
+  const defaultResultMarkup = '<p class="text-slate-500 text-center py-8">Your summarized text will appear here.</p>';
+  const allowedDocumentExtensions = ['.pdf', '.docx', '.txt'];
+  let currentResultText = '';
+  let currentResultState = 'placeholder';
+
+  function escapeHtml(value) {
+    return value.replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    }[char]));
+  }
+
+  function updateStatus(type, title, message) {
+    const statusStyles = {
+      info: {
+        container: 'bg-blue-50 border-blue-200',
+        icon: 'text-blue-500',
+        title: 'text-blue-800',
+        message: 'text-blue-600',
+        symbol: 'i',
+      },
+      loading: {
+        container: 'bg-purple-50 border-purple-200',
+        icon: 'text-purple-500',
+        title: 'text-purple-800',
+        message: 'text-purple-600',
+        symbol: '...',
+      },
+      success: {
+        container: 'bg-green-50 border-green-200',
+        icon: 'text-green-500',
+        title: 'text-green-800',
+        message: 'text-green-600',
+        symbol: 'OK',
+      },
+      error: {
+        container: 'bg-red-50 border-red-200',
+        icon: 'text-red-500',
+        title: 'text-red-800',
+        message: 'text-red-600',
+        symbol: '!',
+      },
+    };
+
+    const selectedStyle = statusStyles[type] || statusStyles.info;
+    processStatus.className = `p-4 rounded-xl border ${selectedStyle.container}`;
+    processStatus.innerHTML = `
+      <div class="flex items-center gap-3">
+        <span class="${selectedStyle.icon} font-semibold">${selectedStyle.symbol}</span>
+        <div>
+          <p class="font-medium ${selectedStyle.title}">${escapeHtml(title)}</p>
+          <p class="text-sm ${selectedStyle.message}">${escapeHtml(message)}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  function updateResult(content, isError = false) {
+    const textColor = isError ? 'text-red-700' : 'text-slate-700';
+    currentResultText = isError ? '' : content;
+    currentResultState = isError ? 'error' : 'content';
+    resultBox.innerHTML = `
+      <p class="${textColor} whitespace-pre-wrap">${escapeHtml(content)}</p>
+    `;
+  }
+
+  function resetResultBox(message = 'Your summarized text will appear here.') {
+    currentResultText = '';
+    currentResultState = 'placeholder';
+    resultBox.innerHTML = `<p class="text-slate-500 text-center py-8">${escapeHtml(message)}</p>`;
+  }
+
+  function updateCharCount() {
+    charCount.textContent = `${sourceText.value.length} characters`;
+  }
+
+  function setSummarizeLoading(isLoading) {
+    summBtn.disabled = isLoading;
+    summBtn.classList.toggle('opacity-70', isLoading);
+    summBtn.classList.toggle('cursor-not-allowed', isLoading);
+    summBtn.innerHTML = isLoading
+      ? '<span>...</span><span>Summarizing...</span>'
+      : summarizeButtonMarkup;
+  }
+
+  function setTranslateLoading(isLoading) {
+    transBtn.disabled = isLoading;
+    transBtn.classList.toggle('opacity-70', isLoading);
+    transBtn.classList.toggle('cursor-not-allowed', isLoading);
+    transBtn.innerHTML = isLoading
+      ? '<span>...</span><span>Translating...</span>'
+      : translateButtonMarkup;
+  }
+
+  function setUploadLoading(isLoading) {
+    chooseFileBtn.disabled = isLoading;
+    chooseFileBtn.classList.toggle('opacity-70', isLoading);
+    chooseFileBtn.classList.toggle('cursor-not-allowed', isLoading);
+    chooseFileBtn.innerHTML = isLoading ? 'Uploading...' : chooseFileButtonMarkup;
+    documentUpload.disabled = isLoading;
+    uploadDropZone.classList.toggle('opacity-70', isLoading);
+    uploadDropZone.classList.toggle('pointer-events-none', isLoading);
+  }
+
+  function setDropZoneActive(isActive) {
+    uploadDropZone.classList.toggle('border-sky-400', isActive);
+    uploadDropZone.classList.toggle('bg-sky-50', isActive);
+  }
+
+  function isSupportedDocument(file) {
+    const lowerName = file.name.toLowerCase();
+    return allowedDocumentExtensions.some((extension) => lowerName.endsWith(extension));
+  }
+
+  function getTextForTranslation() {
+    if (currentResultState === 'content' && currentResultText.trim()) {
+      return currentResultText.trim();
+    }
+
+    return sourceText.value.trim();
+  }
+
+  async function handleDocumentUpload(file) {
+    if (!file) {
+      return;
+    }
+
+    if (!isSupportedDocument(file)) {
+      selectedFileName.textContent = 'No file selected';
+      updateStatus('error', 'Unsupported file type', 'Please choose a PDF, DOCX, or TXT file.');
+      updateResult('Please choose a PDF, DOCX, or TXT file.', true);
+      return;
+    }
+
+    if (file.size === 0) {
+      selectedFileName.textContent = 'No file selected';
+      updateStatus('error', 'Empty file', 'Please choose a non-empty document.');
+      updateResult('Please choose a non-empty document.', true);
+      return;
+    }
+
+    selectedFileName.textContent = file.name;
+    setUploadLoading(true);
+    updateStatus('loading', 'Extracting text', `Reading ${file.name}.`);
+    resetResultBox('Document text will load into the textarea after extraction.');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to extract text from this file.');
+      }
+
+      sourceText.value = data.text || '';
+      updateCharCount();
+      updateStatus('success', 'Text extracted', 'Document text has been loaded into the input area.');
+      resetResultBox('Document text loaded. Click Summarize when you are ready.');
+      sourceText.focus();
+    } catch (error) {
+      updateStatus('error', 'Upload failed', error.message || 'Something went wrong while reading the file.');
+      updateResult(error.message || 'Something went wrong while reading the file.', true);
+    } finally {
+      setUploadLoading(false);
+      documentUpload.value = '';
+    }
+  }
+
+  sourceText.addEventListener('input', updateCharCount);
+
+  chooseFileBtn.addEventListener('click', function(event) {
+    event.stopPropagation();
+    documentUpload.click();
+  });
+
+  uploadDropZone.addEventListener('click', function() {
+    if (!documentUpload.disabled) {
+      documentUpload.click();
+    }
+  });
+
+  uploadDropZone.addEventListener('dragover', function(event) {
+    event.preventDefault();
+    if (!documentUpload.disabled) {
+      setDropZoneActive(true);
+    }
+  });
+
+  uploadDropZone.addEventListener('dragleave', function(event) {
+    if (!uploadDropZone.contains(event.relatedTarget)) {
+      setDropZoneActive(false);
+    }
+  });
+
+  uploadDropZone.addEventListener('drop', function(event) {
+    event.preventDefault();
+    setDropZoneActive(false);
+
+    if (documentUpload.disabled) {
+      return;
+    }
+
+    const file = event.dataTransfer.files && event.dataTransfer.files[0];
+    handleDocumentUpload(file);
+  });
+
+  documentUpload.addEventListener('change', function() {
+    const file = this.files && this.files[0];
+    handleDocumentUpload(file);
+  });
+
+  clearTextBtn.addEventListener('click', function() {
+    sourceText.value = '';
+    documentUpload.value = '';
+    selectedFileName.textContent = 'No file selected';
+    setDropZoneActive(false);
+    updateCharCount();
+    updateStatus('info', 'Ready to process', 'Enter text to get started');
+    resetResultBox();
+    sourceText.focus();
+  });
+
+  summBtn.addEventListener('click', async function() {
+    const text = sourceText.value.trim();
+
+    if (!text) {
+      updateStatus('error', 'Text required', 'Paste some text before requesting a summary.');
+      updateResult('Please enter text to summarize.', true);
+      sourceText.focus();
+      return;
+    }
+
+    setSummarizeLoading(true);
+    updateStatus('loading', 'Generating summary', 'AI is processing your text.');
+    updateResult('Preparing your summary...');
+
+    try {
+      const response = await fetch('/api/summarize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to generate a summary right now.');
+      }
+
+      updateStatus('success', 'Summary generated', 'Key points extracted successfully.');
+      updateResult(data.summary || 'No summary was returned by the server.');
+    } catch (error) {
+      updateStatus('error', 'Summarization failed', error.message || 'Something went wrong while summarizing.');
+      updateResult(error.message || 'Something went wrong while summarizing.', true);
+    } finally {
+      setSummarizeLoading(false);
+    }
+  });
+
+  transBtn.addEventListener('click', function() {
+    const text = getTextForTranslation();
+
+    if (!text) {
+      updateStatus('error', 'Text required', 'Enter text or generate a summary before translating.');
+      updateResult('Please enter text or generate a summary before translating.', true);
+      sourceText.focus();
+      return;
+    }
+
+    setTranslateLoading(true);
+    updateStatus('loading', 'Translating to Urdu', 'AI is translating your selected text.');
+    updateResult('Preparing your Urdu translation...');
+
+    fetch('/api/translate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text }),
+    })
+      .then((response) => response.json().catch(() => ({})).then((data) => ({ response, data })))
+      .then(({ response, data }) => {
+        if (!response.ok) {
+          throw new Error(data.error || 'Unable to translate text right now.');
+        }
+
+        updateStatus('success', 'Translation complete', 'Urdu translation generated successfully.');
+        updateResult(data.translated_text || 'No translated text was returned by the server.');
+      })
+      .catch((error) => {
+        updateStatus('error', 'Translation failed', error.message || 'Something went wrong while translating.');
+        updateResult(error.message || 'Something went wrong while translating.', true);
+      })
+      .finally(() => {
+        setTranslateLoading(false);
+      });
+  });
+</script>
+{% endblock %}

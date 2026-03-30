@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-2xl shadow-md p-6 mb-6">
+    <h2 class="text-2xl font-bold text-slate-800 mb-2">Text to Speech</h2>
+    <p class="text-slate-600">Convert written content into spoken audio for easier listening and study support.</p>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-8">
+    <div class="bg-white rounded-2xl shadow-md p-6">
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Upload File</label>
+          <div
+            id="uploadDropZone"
+            class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-sky-400 transition-colors cursor-pointer"
+          >
+            <div class="text-sm font-medium text-slate-700 mb-2">Extract text from a document</div>
+            <p class="text-slate-600 text-sm mb-3">Choose or drop a PDF, DOCX, or TXT file and its text will be loaded into the textarea automatically.</p>
+            <input id="documentUpload" type="file" accept=".txt,.pdf,.docx" class="hidden" />
+            <button
+              id="chooseFileBtn"
+              type="button"
+              class="px-4 py-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors text-sm"
+            >
+              Choose File
+            </button>
+            <p id="selectedFileName" class="text-xs text-slate-500 mt-3">No file selected</p>
+            <p class="text-xs text-slate-400 mt-1">TXT, PDF, DOCX supported</p>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2" for="langSelect">Language</label>
+          <select id="langSelect" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-sky-500 transition-colors">
+            <option value="en">English</option>
+            <option value="ur">Urdu</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2" for="ttsInput">Text to Convert</label>
+          <textarea
+            id="ttsInput"
+            rows="8"
+            class="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-sky-500 transition-colors resize-none"
+            placeholder="Enter or paste the text you want to convert to speech..."
+          ></textarea>
+        </div>
+
+        <div class="flex justify-between items-center text-sm text-slate-500">
+          <span id="charCount">0 characters</span>
+          <button id="clearTextBtn" type="button" class="text-sky-600 hover:text-sky-700 font-medium">
+            Clear Text
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <button
+            id="speakTextBtn"
+            type="button"
+            class="py-3 bg-gradient-to-r from-sky-500 to-sky-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-semibold flex items-center justify-center gap-2"
+          >
+            <span>Generate Audio</span>
+          </button>
+          <button
+            id="previewBtn"
+            type="button"
+            class="py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors font-medium flex items-center justify-center gap-2"
+          >
+            <span>Quick Preview</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-md p-6">
+      <h3 class="text-lg font-semibold text-slate-800 mb-4">Audio Output</h3>
+
+      <div class="space-y-6">
+        <div id="ttsStatus" class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+          <div class="flex items-center gap-3">
+            <span class="text-blue-500 font-semibold">i</span>
+            <div>
+              <p class="font-medium text-blue-800">Ready to convert</p>
+              <p class="text-sm text-blue-600">Enter text and click Generate Audio</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Generated Audio</label>
+          <div id="audioOutput" class="p-4 bg-slate-50 rounded-xl border border-slate-200 min-h-[120px] flex items-center justify-center">
+            <p class="text-slate-500 text-center">Your generated audio player will appear here.</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-4">
+          <h4 class="font-medium text-slate-700 mb-3">Try Sample Texts</h4>
+          <div class="space-y-2">
+            <button
+              type="button"
+              onclick="setSampleText('en')"
+              class="w-full text-left p-3 bg-white rounded-lg hover:bg-slate-100 transition-colors text-sm"
+            >
+              <span class="font-medium">English Sample:</span> "The quick brown fox jumps over the lazy dog."
+            </button>
+            <button
+              type="button"
+              onclick="setSampleText('ur')"
+              class="w-full text-left p-3 bg-white rounded-lg hover:bg-slate-100 transition-colors text-sm"
+            >
+              <span class="font-medium">Urdu Sample:</span> "یہ اردو زبان کی مثال ہے۔"
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 text-center">
+          <div class="p-3 bg-emerald-50 rounded-lg">
+            <p class="text-sm font-medium text-emerald-800">High Quality</p>
+          </div>
+          <div class="p-3 bg-purple-50 rounded-lg">
+            <p class="text-sm font-medium text-purple-800">Fast Processing</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const ttsInput = document.getElementById('ttsInput');
+  const charCount = document.getElementById('charCount');
+  const langSelect = document.getElementById('langSelect');
+  const clearTextBtn = document.getElementById('clearTextBtn');
+  const speakTextBtn = document.getElementById('speakTextBtn');
+  const previewBtn = document.getElementById('previewBtn');
+  const uploadDropZone = document.getElementById('uploadDropZone');
+  const documentUpload = document.getElementById('documentUpload');
+  const chooseFileBtn = document.getElementById('chooseFileBtn');
+  const selectedFileName = document.getElementById('selectedFileName');
+  const ttsStatus = document.getElementById('ttsStatus');
+  const audioOutput = document.getElementById('audioOutput');
+  const speakButtonMarkup = speakTextBtn.innerHTML;
+  const chooseFileButtonMarkup = chooseFileBtn.innerHTML;
+  const allowedDocumentExtensions = ['.pdf', '.docx', '.txt'];
+
+  function escapeHtml(value) {
+    return value.replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    }[char]));
+  }
+
+  function updateTtsStatus(type, title, message) {
+    const statusStyles = {
+      info: {
+        container: 'bg-blue-50 border-blue-200',
+        icon: 'text-blue-500',
+        title: 'text-blue-800',
+        message: 'text-blue-600',
+        symbol: 'i',
+      },
+      loading: {
+        container: 'bg-sky-50 border-sky-200',
+        icon: 'text-sky-500',
+        title: 'text-sky-800',
+        message: 'text-sky-600',
+        symbol: '...',
+      },
+      success: {
+        container: 'bg-green-50 border-green-200',
+        icon: 'text-green-500',
+        title: 'text-green-800',
+        message: 'text-green-600',
+        symbol: 'OK',
+      },
+      error: {
+        container: 'bg-red-50 border-red-200',
+        icon: 'text-red-500',
+        title: 'text-red-800',
+        message: 'text-red-600',
+        symbol: '!',
+      },
+    };
+
+    const selectedStyle = statusStyles[type] || statusStyles.info;
+    ttsStatus.className = `p-4 rounded-xl border ${selectedStyle.container}`;
+    ttsStatus.innerHTML = `
+      <div class="flex items-center gap-3">
+        <span class="${selectedStyle.icon} font-semibold">${selectedStyle.symbol}</span>
+        <div>
+          <p class="font-medium ${selectedStyle.title}">${escapeHtml(title)}</p>
+          <p class="text-sm ${selectedStyle.message}">${escapeHtml(message)}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderAudioPlaceholder(message, isError = false) {
+    audioOutput.innerHTML = `
+      <p class="${isError ? 'text-red-700' : 'text-slate-500'} text-center">${escapeHtml(message)}</p>
+    `;
+  }
+
+  function renderAudioPlayer(audioUrl) {
+    audioOutput.innerHTML = '';
+
+    const audioElement = document.createElement('audio');
+    audioElement.controls = true;
+    audioElement.autoplay = true;
+    audioElement.className = 'w-full';
+    audioElement.src = audioUrl;
+
+    audioOutput.appendChild(audioElement);
+    audioElement.play().catch(() => {});
+  }
+
+  function setLoadingState(isLoading) {
+    speakTextBtn.disabled = isLoading;
+    speakTextBtn.classList.toggle('opacity-70', isLoading);
+    speakTextBtn.classList.toggle('cursor-not-allowed', isLoading);
+    speakTextBtn.innerHTML = isLoading
+      ? '<span>Generating...</span>'
+      : speakButtonMarkup;
+  }
+
+  function setUploadLoading(isLoading) {
+    chooseFileBtn.disabled = isLoading;
+    chooseFileBtn.classList.toggle('opacity-70', isLoading);
+    chooseFileBtn.classList.toggle('cursor-not-allowed', isLoading);
+    chooseFileBtn.innerHTML = isLoading ? 'Uploading...' : chooseFileButtonMarkup;
+    documentUpload.disabled = isLoading;
+    uploadDropZone.classList.toggle('opacity-70', isLoading);
+    uploadDropZone.classList.toggle('pointer-events-none', isLoading);
+  }
+
+  function setDropZoneActive(isActive) {
+    uploadDropZone.classList.toggle('border-sky-400', isActive);
+    uploadDropZone.classList.toggle('bg-sky-50', isActive);
+  }
+
+  function updateCharCount() {
+    charCount.textContent = `${ttsInput.value.length} characters`;
+  }
+
+  function isSupportedDocument(file) {
+    const lowerName = file.name.toLowerCase();
+    return allowedDocumentExtensions.some((extension) => lowerName.endsWith(extension));
+  }
+
+  async function handleDocumentUpload(file) {
+    if (!file) {
+      console.debug('[TTS upload] No file selected.');
+      return;
+    }
+
+    console.debug('[TTS upload] File received:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    });
+
+    if (!isSupportedDocument(file)) {
+      console.debug('[TTS upload] Unsupported file type:', file.name);
+      selectedFileName.textContent = 'No file selected';
+      updateTtsStatus('error', 'Unsupported file type', 'Please choose a PDF, DOCX, or TXT file.');
+      renderAudioPlaceholder('Please choose a PDF, DOCX, or TXT file.', true);
+      return;
+    }
+
+    if (file.size === 0) {
+      console.debug('[TTS upload] Empty file rejected:', file.name);
+      selectedFileName.textContent = 'No file selected';
+      updateTtsStatus('error', 'Empty file', 'Please choose a non-empty document.');
+      renderAudioPlaceholder('Please choose a non-empty document.', true);
+      return;
+    }
+
+    selectedFileName.textContent = file.name;
+    setUploadLoading(true);
+    updateTtsStatus('loading', 'Extracting text', `Reading ${file.name}.`);
+    renderAudioPlaceholder('Extracting text from your document...');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      console.debug('[TTS upload] Sending file to /api/upload:', file.name);
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to extract text from this file.');
+      }
+
+      ttsInput.value = data.text || '';
+      updateCharCount();
+      updateTtsStatus('success', 'Text extracted', 'Document text has been loaded into the input area.');
+      renderAudioPlaceholder('Document text loaded. Click Generate Audio when you are ready.');
+      ttsInput.focus();
+      console.debug('[TTS upload] Extraction successful. Characters loaded:', ttsInput.value.length);
+    } catch (error) {
+      console.error('[TTS upload] Extraction failed:', error);
+      updateTtsStatus('error', 'Upload failed', error.message || 'Something went wrong while reading the file.');
+      renderAudioPlaceholder(error.message || 'Something went wrong while reading the file.', true);
+    } finally {
+      setUploadLoading(false);
+      documentUpload.value = '';
+      setDropZoneActive(false);
+    }
+  }
+
+  function setSampleText(lang) {
+    const samples = {
+      en: 'Welcome to the Inclusive Learning Assistant. This text to speech feature helps you convert written content into audio for easier studying.',
+      ur: 'یہ ٹیکسٹ ٹو اسپیچ فیچر آپ کے متن کو آواز میں تبدیل کرنے میں مدد دیتا ہے۔',
+    };
+
+    ttsInput.value = samples[lang];
+    langSelect.value = lang;
+    updateCharCount();
+  }
+
+  function clearText() {
+    ttsInput.value = '';
+    documentUpload.value = '';
+    selectedFileName.textContent = 'No file selected';
+    setDropZoneActive(false);
+    updateCharCount();
+    updateTtsStatus('info', 'Ready to convert', 'Enter text and click Generate Audio');
+    renderAudioPlaceholder('Your generated audio player will appear here.');
+    console.debug('[TTS] Text and file selection cleared.');
+    ttsInput.focus();
+  }
+
+  ttsInput.addEventListener('input', updateCharCount);
+
+  chooseFileBtn.addEventListener('click', function(event) {
+    event.stopPropagation();
+    console.debug('[TTS upload] Choose File button clicked.');
+    documentUpload.click();
+  });
+
+  uploadDropZone.addEventListener('click', function() {
+    if (!documentUpload.disabled) {
+      console.debug('[TTS upload] Upload area clicked.');
+      documentUpload.click();
+    }
+  });
+
+  uploadDropZone.addEventListener('dragover', function(event) {
+    event.preventDefault();
+    if (!documentUpload.disabled) {
+      setDropZoneActive(true);
+    }
+  });
+
+  uploadDropZone.addEventListener('dragleave', function(event) {
+    if (!uploadDropZone.contains(event.relatedTarget)) {
+      setDropZoneActive(false);
+    }
+  });
+
+  uploadDropZone.addEventListener('drop', function(event) {
+    event.preventDefault();
+    setDropZoneActive(false);
+
+    if (documentUpload.disabled) {
+      return;
+    }
+
+    const file = event.dataTransfer.files && event.dataTransfer.files[0];
+    console.debug('[TTS upload] File dropped:', file ? file.name : '[none]');
+    handleDocumentUpload(file);
+  });
+
+  documentUpload.addEventListener('change', function() {
+    const file = this.files && this.files[0];
+    console.debug('[TTS upload] File selected via picker:', file ? file.name : '[none]');
+    handleDocumentUpload(file);
+  });
+
+  clearTextBtn.addEventListener('click', clearText);
+
+  speakTextBtn.addEventListener('click', async function() {
+    const text = ttsInput.value.trim();
+    const lang = langSelect.value;
+
+    if (!text) {
+      updateTtsStatus('error', 'Text required', 'Please enter some text before generating audio.');
+      renderAudioPlaceholder('Please enter text to generate audio.', true);
+      ttsInput.focus();
+      return;
+    }
+
+    setLoadingState(true);
+    updateTtsStatus('loading', 'Generating audio', 'Text is being converted to speech.');
+    renderAudioPlaceholder('Generating your audio...');
+
+    try {
+      const response = await fetch('/api/tts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text, lang }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to generate audio right now.');
+      }
+
+      renderAudioPlayer(data.audio_url);
+      updateTtsStatus('success', 'Audio generated', 'Your speech file is ready and should start playing automatically.');
+    } catch (error) {
+      updateTtsStatus('error', 'Audio generation failed', error.message || 'Something went wrong while generating audio.');
+      renderAudioPlaceholder(error.message || 'Something went wrong while generating audio.', true);
+    } finally {
+      setLoadingState(false);
+    }
+  });
+
+  previewBtn.addEventListener('click', function() {
+    const previewText = ttsInput.value.trim();
+    if (!previewText) {
+      updateTtsStatus('error', 'Text required', 'Please enter some text before using quick preview.');
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(previewText);
+    utterance.lang = langSelect.value === 'ur' ? 'ur-PK' : 'en-US';
+
+    updateTtsStatus('info', 'Playing preview', 'Browser-based preview is now playing.');
+    speechSynthesis.cancel();
+    speechSynthesis.speak(utterance);
+  });
+</script>
+{% endblock %}

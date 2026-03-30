@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Inclusive Learning Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #10b981 0%, #0ea5e9 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+            transform: translateY(-2px);
+        }
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .pulse-hover:hover {
+            animation: pulse 0.5s;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-green-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+    <!-- Animated Background Elements -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-10 -left-10 w-20 h-20 bg-emerald-200 rounded-full opacity-20 floating" style="animation-delay: 0s;"></div>
+        <div class="absolute top-1/4 -right-10 w-16 h-16 bg-sky-200 rounded-full opacity-20 floating" style="animation-delay: 1s;"></div>
+        <div class="absolute bottom-1/3 left-1/4 w-12 h-12 bg-emerald-300 rounded-full opacity-20 floating" style="animation-delay: 2s;"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="w-full max-w-6xl flex bg-white/80 backdrop-blur-sm rounded-2xl card-shadow overflow-hidden border border-white/20 relative z-10">
+        <!-- Left Side - Form -->
+        <div class="w-full md:w-1/2 p-8 md:p-12">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="flex flex-col items-center gap-4 mb-4">
+                    <!-- Logo with University Badge -->
+                    <div class="relative">
+                        <img src="{{ url_for('static', filename='images/logo.png') }}" 
+                             alt="ILA Logo" 
+                             class="w-16 h-16 rounded-2xl pulse-hover"
+                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTIiIGZpbGw9InVybCgjcGFpbnQwX2xpbmVhcikiLz4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0icGFpbnQwX2xpbmVhciIgeDE9IjMyIiB5MT0iMCIgeDI9IjMyIiB5Mj0iNjQiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzEwQjk4MSIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwRUE1RTkiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8dGV4dCB4PSIzMiIgeT0iNDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LXNpemU9IjE4IiBmb250LXdlaWdodD0iYm9sZCI+SUxBPC90ZXh0Pgo8L3N2Zz4K'">
+                        <div class="absolute -bottom-2 -right-2 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center text-xs text-white">
+                            🎓
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <h1 class="text-2xl md:text-3xl font-bold text-slate-800 bg-gradient-to-r from-emerald-600 to-sky-600 bg-clip-text text-transparent">
+                            Join Our Learning Community
+                        </h1>
+                        <p class="text-sm text-slate-500 mt-2">Create your student account in 30 seconds</p>
+                        <p class="text-xs text-slate-400 mt-1">Sukkur IBA University - Computer Science</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            {% if error %}
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-3 transform transition-all duration-300 hover:scale-105">
+                <span class="text-xl">⚠️</span>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <!-- Registration Form -->
+            <form method="POST" class="space-y-6" id="registerForm">
+                <!-- Name Field -->
+                <div>
+                    <label class="block text-slate-700 text-sm font-semibold mb-2">👤 Full Name</label>
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            name="name" 
+                            required 
+                            placeholder="Enter your full name"
+                            class="w-full p-4 border-2 border-slate-200 rounded-xl input-focus transition-all duration-300 bg-white focus:border-emerald-500"
+                        >
+                    </div>
+                </div>
+
+                <!-- Email Field -->
+                <div>
+                    <label class="block text-slate-700 text-sm font-semibold mb-2">📧 Email Address</label>
+                    <div class="relative">
+                        <input 
+                            type="email" 
+                            name="email" 
+                            required 
+                            placeholder="student@iba-suk.edu.pk"
+                            class="w-full p-4 border-2 border-slate-200 rounded-xl input-focus transition-all duration-300 bg-white focus:border-emerald-500"
+                        >
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div>
+                    <label class="block text-slate-700 text-sm font-semibold mb-2">🔒 Password</label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            name="password" 
+                            required 
+                            placeholder="Create a strong password"
+                            class="w-full p-4 border-2 border-slate-200 rounded-xl input-focus transition-all duration-300 bg-white focus:border-emerald-500"
+                            id="passwordInput"
+                        >
+                        <button type="button" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600" onclick="togglePassword()">
+                            👁️
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">Use 8+ characters with mix of letters and numbers</p>
+                </div>
+
+                <!-- Features List -->
+                <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100 transform transition-all duration-300 hover:scale-105">
+                    <h3 class="font-semibold text-emerald-800 mb-3 flex items-center gap-2">
+                        <span>🎯</span> What you'll get:
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-emerald-700">
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>Text-to-Speech Conversion</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>Speech-to-Text Transcription</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>File Upload & Text Extraction</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>AI-powered Summarization</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>Readability Adjustments</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>Urdu Language Support</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terms & Conditions -->
+                <label class="flex items-start gap-3 text-sm text-slate-600 cursor-pointer group">
+                    <input type="checkbox" class="mt-1 rounded border-slate-300 group-hover:border-emerald-500 transition-colors" required>
+                    <span class="group-hover:text-slate-700 transition-colors">
+                        I agree to the <a href="#" class="text-emerald-600 hover:text-emerald-700 font-medium">Terms of Service</a> and 
+                        <a href="#" class="text-emerald-600 hover:text-emerald-700 font-medium">Privacy Policy</a>
+                    </span>
+                </label>
+
+                <!-- Submit Button -->
+                <button 
+                    type="submit" 
+                    class="w-full gradient-bg text-white p-4 rounded-xl hover:shadow-lg transition-all duration-300 font-semibold text-lg pulse-hover transform hover:scale-105 relative overflow-hidden group"
+                    id="registerButton"
+                >
+                    <span class="relative z-10 group-hover:scale-105 transition-transform">
+                        🚀 Create Student Account
+                    </span>
+                    <div class="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                </button>
+            </form>
+
+            <!-- Login Link -->
+            <div class="text-center mt-8">
+                <p class="text-slate-600">
+                    Already have an account? 
+                    <a href="{{ url_for('login') }}" class="text-emerald-600 hover:text-emerald-700 font-semibold ml-1 transition-colors group">
+                        Sign in here <span class="group-hover:underline">→</span>
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Right Side - Illustration -->
+        <div class="hidden md:flex md:w-1/2 gradient-bg text-white p-12 flex-col justify-center relative overflow-hidden">
+            <!-- Animated Background -->
+            <div class="absolute inset-0 opacity-10">
+                <div class="absolute top-10 left-10 text-6xl floating" style="animation-delay: 0.5s;">🌟</div>
+                <div class="absolute top-20 right-20 text-4xl floating" style="animation-delay: 1s;">📚</div>
+                <div class="absolute bottom-20 left-20 text-5xl floating" style="animation-delay: 1.5s;">🎨</div>
+                <div class="absolute bottom-10 right-10 text-3xl floating" style="animation-delay: 2s;">⚡</div>
+            </div>
+            
+            <div class="text-center relative z-10">
+                <div class="text-8xl mb-6 floating pulse-hover">🌈</div>
+                <h2 class="text-4xl font-bold mb-6">Start Your Accessible Learning Journey!</h2>
+                <p class="text-emerald-100 text-xl leading-relaxed mb-8">
+                    Join thousands of students who are using AI-powered tools to make learning more accessible and effective.
+                </p>
+                
+                <!-- Stats -->
+                <div class="grid grid-cols-3 gap-6 text-center mb-8">
+                    <div class="transform transition-all duration-300 hover:scale-110">
+                        <div class="text-3xl font-bold counter" data-target="500">0</div>
+                        <div class="text-sm text-emerald-200">Active Students</div>
+                    </div>
+                    <div class="transform transition-all duration-300 hover:scale-110">
+                        <div class="text-3xl font-bold counter" data-target="1543">0</div>
+                        <div class="text-sm text-emerald-200">Files Processed</div>
+                    </div>
+                    <div class="transform transition-all duration-300 hover:scale-110">
+                        <div class="text-3xl font-bold counter" data-target="99">0</div>
+                        <div class="text-sm text-emerald-200">Satisfaction %</div>
+                    </div>
+                </div>
+
+                <!-- Testimonial -->
+                <div class="mt-8 p-4 bg-white/10 rounded-xl backdrop-blur-sm transform transition-all duration-300 hover:scale-105">
+                    <p class="text-sm italic">"This platform transformed how I study! The text-to-speech feature helps me learn during my commute."</p>
+                    <p class="text-xs mt-2 text-emerald-200">- Computer Science Student</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('passwordInput');
+            const button = event.target;
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.textContent = '👁️‍🗨️';
+            } else {
+                input.type = 'password';
+                button.textContent = '👁️';
+            }
+        }
+
+        // Animate counters
+        document.addEventListener('DOMContentLoaded', function() {
+            const counters = document.querySelectorAll('.counter');
+            counters.forEach(counter => {
+                const target = parseInt(counter.getAttribute('data-target'));
+                let count = 0;
+                const increment = target / 50;
+                
+                const updateCount = () => {
+                    if (count < target) {
+                        count += increment;
+                        counter.textContent = Math.ceil(count);
+                        setTimeout(updateCount, 50);
+                    } else {
+                        counter.textContent = target;
+                    }
+                };
+                
+                updateCount();
+            });
+        });
+
+        // Form submission animation
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const button = document.getElementById('registerButton');
+            button.innerHTML = '<span class="relative z-10">🔄 Creating Account...</span>';
+            button.disabled = true;
+        });
+    </script>
+</body>
+</html>

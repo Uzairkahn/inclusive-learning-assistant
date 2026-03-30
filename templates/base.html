@@ -1,0 +1,187 @@
+<!-- =============== HTML DOCUMENT STRUCTURE =============== -->
+<!-- HTML5 Document with responsive meta tags -->
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Character encoding for international text support -->
+  <meta charset="utf-8" />
+  <!-- Viewport meta for responsive design on mobile devices -->
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- Page title shown in browser tab -->
+  <title>Inclusive Learning Assistant</title>
+  
+  <!-- =============== EXTERNAL STYLESHEETS =============== -->
+  <!-- Tailwind CSS CDN: Utility-first CSS framework for responsive design -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Custom CSS file for application-specific styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  
+  <!-- =============== INLINE STYLES =============== -->
+  <style>
+    /* Navigation bar background color - Sky blue */
+    .nav-solid {
+      background: #0ea5e9;
+    }
+    /* Navigation item styling - smooth hover transitions */
+    .nav-item {
+      transition: all 0.3s ease;
+      border-radius: 0.5rem;
+    }
+    /* Navigation item hover effect - slight lift and background change */
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+  </style>
+  
+  <!-- Template-specific head content (inherited by child templates) -->
+  {% block head %}{% endblock %}
+</head>
+
+<!-- =============== PAGE BODY =============== -->
+<!-- Body with light gray background and minimum height for full-page layout -->
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+
+  <!-- =============== NAVIGATION BAR =============== -->
+  <!-- Primary navigation with responsive layout -->
+  <nav class="nav-solid text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="flex justify-between items-center py-4">
+        <!-- =============== LOGO & BRAND SECTION =============== -->
+        <div class="flex items-center gap-4">
+          <!-- Logo badge with initials -->
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white font-bold text-lg border-2 border-white/30">
+              ILA
+            </div>
+          </div>
+          <!-- Brand name and institution -->
+          <div class="flex flex-col">
+            <!-- Link to home page -->
+            <a href="{{ url_for('index') }}" class="text-2xl font-bold text-white leading-tight">
+              Inclusive Learning Assistant
+            </a>
+            <!-- Institution name below brand -->
+            <p class="text-sm text-white/90 mt-1">Sukkur IBA University</p>
+          </div>
+        </div>
+
+        <!-- =============== NAVIGATION MENU =============== -->
+        <div class="flex items-center gap-2">
+          <!-- Check if user is logged in (session has user_id) -->
+          {% if session.user_id %}
+            <!-- =============== LOGGED-IN USER MENU =============== -->
+            <!-- Feature navigation buttons for authenticated users -->
+            <div class="flex items-center gap-1 bg-white/15 rounded-xl p-1">
+              <!-- Dashboard link -->
+              <a href="{{ url_for('index') }}" class="nav-item px-4 py-2.5 text-white flex items-center gap-2 font-medium">
+                <span class="text-lg">📊</span>
+                Dashboard
+              </a>
+              <!-- Speech-to-Text feature link -->
+              <a href="{{ url_for('stt') }}" class="nav-item px-4 py-2.5 text-white flex items-center gap-2 font-medium">
+                <span class="text-lg">🎙️</span>
+                STT
+              </a>
+              <!-- Text-to-Speech feature link -->
+              <a href="{{ url_for('tts_page') }}" class="nav-item px-4 py-2.5 text-white flex items-center gap-2 font-medium">
+                <span class="text-lg">🔊</span>
+                TTS
+              </a>
+              <!-- Summarization feature link -->
+              <a href="{{ url_for('summarize') }}" class="nav-item px-4 py-2.5 text-white flex items-center gap-2 font-medium">
+                <span class="text-lg">🧠</span>
+                Summarize
+              </a>
+              <!-- Readability/Accessibility feature link -->
+              <a href="{{ url_for('readability') }}" class="nav-item px-4 py-2.5 text-white flex items-center gap-2 font-medium">
+               <span class="text-lg">👁️</span>
+               Readability
+              </a>
+            </div>
+
+            <!-- =============== USER ACCOUNT SECTION =============== -->
+            <div class="flex items-center gap-3 ml-3">
+              <!-- About page link -->
+              <a href="{{ url_for('about') }}" class="nav-item px-3 py-2.5 text-white flex items-center gap-2 font-medium">
+                <span class="text-lg">ℹ️</span>
+                About
+              </a>
+
+              <!-- User profile display with first letter of name -->
+              <div class="flex items-center gap-3 bg-white/15 px-4 py-2 rounded-lg border border-white/20">
+                <!-- Avatar: first letter of user's name -->
+                <div class="w-8 h-8 bg-white/25 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  {{ session.user_name[0]|upper }}
+                </div>
+                <!-- Display user's name -->
+                <span class="text-white font-semibold">{{ session.user_name }}</span>
+              </div>
+
+              <!-- Logout button -->
+              <a href="{{ url_for('logout') }}" class="bg-white/25 hover:bg-white/35 px-5 py-2.5 rounded-lg text-white font-semibold transition-colors border border-white/30">
+                Logout
+              </a>
+            </div>
+
+          {% else %}
+            <!-- =============== GUEST USER MENU =============== -->
+            <!-- Navigation for unauthenticated users -->
+            <div class="flex items-center gap-4">
+              <!-- Login button -->
+              <a href="{{ url_for('login') }}" class="bg-white/20 hover:bg-white/30 px-6 py-2.5 rounded-lg text-white font-semibold transition-colors border border-white/25">
+                Login
+              </a>
+              <!-- Register button -->
+              <a href="{{ url_for('register') }}" class="bg-white text-blue-600 hover:bg-blue-50 px-6 py-2.5 rounded-lg font-semibold transition-colors border border-blue-200 shadow-sm">
+                Register
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- =============== MAIN CONTENT AREA =============== -->
+  <!-- Container for page-specific content (populated by child templates) -->
+  <main class="max-w-7xl mx-auto px-6 py-8">
+    <!-- Template block: child pages insert their content here -->
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- =============== FOOTER =============== -->
+  <!-- Website footer with branding and project info -->
+  <footer class="bg-white border-t border-gray-200 mt-12">
+    <div class="max-w-7xl mx-auto px-6 py-6">
+      <div class="flex justify-between items-center">
+        <!-- =============== FOOTER LEFT: BRANDING =============== -->
+        <div class="flex items-center gap-3">
+          <!-- App logo in footer -->
+          <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold">
+            ILA
+          </div>
+          <!-- App name and tagline -->
+          <div>
+            <p class="text-sm font-semibold text-gray-800">Inclusive Learning Assistant</p>
+            <p class="text-xs text-gray-500">AI-Powered Learning Platform</p>
+          </div>
+        </div>
+
+        <!-- =============== FOOTER RIGHT: PROJECT INFO =============== -->
+        <!-- University and project details -->
+        <div class="text-right">
+          <p class="text-sm text-gray-600">Sukkur IBA University</p>
+          <p class="text-xs text-gray-500">Computer Science • FYP 2025</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =============== JAVASCRIPT INCLUDES =============== -->
+  <!-- Main application JavaScript file -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <!-- Template block: child pages can add their own scripts here -->
+  {% block scripts %}{% endblock %}
+</body>
+</html>

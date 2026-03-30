@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white rounded-2xl shadow-md p-6 mb-6">
+    <h2 class="text-2xl font-bold text-slate-800 mb-2">Speech to Text</h2>
+    <p class="text-slate-600">Upload an audio file and convert spoken content into editable text with Whisper.</p>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-8">
+    <div class="bg-white rounded-2xl shadow-md p-6">
+      <h3 class="text-lg font-semibold text-slate-800 mb-4">Upload Audio</h3>
+
+      <div
+        id="uploadArea"
+        class="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center hover:border-sky-400 transition-colors duration-300 cursor-pointer"
+      >
+        <p class="text-slate-700 font-medium mb-2">Drop your audio file here</p>
+        <p class="text-slate-500 text-sm mb-4">or click to browse</p>
+        <input id="sttFileInput" type="file" accept=".mp3,.wav" class="hidden" />
+        <button
+          id="chooseFileBtn"
+          type="button"
+          class="px-6 py-3 bg-sky-500 text-white rounded-xl hover:bg-sky-600 transition-colors font-medium"
+        >
+          Choose File
+        </button>
+        <p class="text-xs text-slate-400 mt-3">Supports: MP3, WAV (Max 50MB)</p>
+      </div>
+
+      <div class="mt-4 p-4 bg-slate-50 rounded-xl hidden" id="fileInfo">
+        <div class="flex items-center gap-3">
+          <div class="flex-1">
+            <p class="font-medium text-slate-800" id="fileName">audio.mp3</p>
+            <p class="text-sm text-slate-500" id="fileSize">0 MB</p>
+          </div>
+          <button id="removeFileBtn" type="button" class="text-slate-400 hover:text-red-500">
+            Remove
+          </button>
+        </div>
+      </div>
+
+      <button
+        id="convertBtn"
+        type="button"
+        class="w-full mt-4 py-4 bg-gradient-to-r from-sky-500 to-sky-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-semibold flex items-center justify-center gap-2"
+      >
+        <span>Convert to Text</span>
+      </button>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-md p-6">
+      <h3 class="text-lg font-semibold text-slate-800 mb-4">Transcript Result</h3>
+
+      <div class="space-y-4">
+        <div id="sttStatus" class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+          <div class="flex items-center gap-3">
+            <span class="text-blue-500 font-semibold">i</span>
+            <div>
+              <p class="font-medium text-blue-800">Ready for conversion</p>
+              <p class="text-sm text-blue-600">Upload an MP3 or WAV file to see the transcript</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-4">
+          <label class="block text-sm font-medium text-slate-700 mb-2">Transcript Preview</label>
+          <div class="max-h-64 overflow-y-auto">
+            <pre id="transcriptOutput" class="text-sm text-slate-700 whitespace-pre-wrap font-sans">[Transcript will appear here after conversion]</pre>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <button
+            id="copyTranscriptBtn"
+            type="button"
+            class="p-3 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+          >
+            Copy Text
+          </button>
+          <button
+            id="clearTranscriptBtn"
+            type="button"
+            class="p-3 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+          >
+            Clear Result
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-8 bg-white rounded-2xl shadow-md p-6">
+    <h3 class="text-lg font-semibold text-slate-800 mb-4">Supported Features</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="p-4 bg-green-50 rounded-lg">
+        <p class="font-medium text-green-800">Lecture Recording</p>
+        <p class="text-sm text-green-600">Convert spoken lessons to searchable text</p>
+      </div>
+      <div class="p-4 bg-purple-50 rounded-lg">
+        <p class="font-medium text-purple-800">Audio Files</p>
+        <p class="text-sm text-purple-600">MP3 and WAV support</p>
+      </div>
+      <div class="p-4 bg-blue-50 rounded-lg">
+        <p class="font-medium text-blue-800">Local Whisper Model</p>
+        <p class="text-sm text-blue-600">CPU-friendly transcription with the base model</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const sttFileInput = document.getElementById('sttFileInput');
+  const uploadArea = document.getElementById('uploadArea');
+  const chooseFileBtn = document.getElementById('chooseFileBtn');
+  const fileInfo = document.getElementById('fileInfo');
+  const fileName = document.getElementById('fileName');
+  const fileSize = document.getElementById('fileSize');
+  const removeFileBtn = document.getElementById('removeFileBtn');
+  const convertBtn = document.getElementById('convertBtn');
+  const sttStatus = document.getElementById('sttStatus');
+  const transcriptOutput = document.getElementById('transcriptOutput');
+  const copyTranscriptBtn = document.getElementById('copyTranscriptBtn');
+  const clearTranscriptBtn = document.getElementById('clearTranscriptBtn');
+  const convertButtonMarkup = convertBtn.innerHTML;
+  const allowedExtensions = ['.mp3', '.wav'];
+  const maxFileSizeBytes = 50 * 1024 * 1024;
+  let selectedFile = null;
+
+  function escapeHtml(value) {
+    return value.replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    }[char]));
+  }
+
+  function updateSttStatus(type, title, message) {
+    const statusStyles = {
+      info: {
+        container: 'bg-blue-50 border-blue-200',
+        icon: 'text-blue-500',
+        title: 'text-blue-800',
+        message: 'text-blue-600',
+        symbol: 'i',
+      },
+      loading: {
+        container: 'bg-sky-50 border-sky-200',
+        icon: 'text-sky-500',
+        title: 'text-sky-800',
+        message: 'text-sky-600',
+        symbol: '...',
+      },
+      success: {
+        container: 'bg-green-50 border-green-200',
+        icon: 'text-green-500',
+        title: 'text-green-800',
+        message: 'text-green-600',
+        symbol: 'OK',
+      },
+      error: {
+        container: 'bg-red-50 border-red-200',
+        icon: 'text-red-500',
+        title: 'text-red-800',
+        message: 'text-red-600',
+        symbol: '!',
+      },
+    };
+
+    const selectedStyle = statusStyles[type] || statusStyles.info;
+    sttStatus.className = `p-4 rounded-xl border ${selectedStyle.container}`;
+    sttStatus.innerHTML = `
+      <div class="flex items-center gap-3">
+        <span class="${selectedStyle.icon} font-semibold">${selectedStyle.symbol}</span>
+        <div>
+          <p class="font-medium ${selectedStyle.title}">${escapeHtml(title)}</p>
+          <p class="text-sm ${selectedStyle.message}">${escapeHtml(message)}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  function setConvertLoading(isLoading) {
+    convertBtn.disabled = isLoading;
+    convertBtn.classList.toggle('opacity-70', isLoading);
+    convertBtn.classList.toggle('cursor-not-allowed', isLoading);
+    convertBtn.innerHTML = isLoading ? '<span>Transcribing...</span>' : convertButtonMarkup;
+  }
+
+  function formatFileSize(bytes) {
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  }
+
+  function isSupportedFile(file) {
+    const lowerName = file.name.toLowerCase();
+    return allowedExtensions.some((extension) => lowerName.endsWith(extension));
+  }
+
+  function clearSelectedFile() {
+    selectedFile = null;
+    sttFileInput.value = '';
+    fileInfo.classList.add('hidden');
+  }
+
+  function updateSelectedFile(file) {
+    if (!file) {
+      clearSelectedFile();
+      return;
+    }
+
+    if (!isSupportedFile(file)) {
+      updateSttStatus('error', 'Unsupported file type', 'Please choose an MP3 or WAV file.');
+      clearSelectedFile();
+      return;
+    }
+
+    if (file.size === 0) {
+      updateSttStatus('error', 'Empty file', 'Please choose a non-empty audio file.');
+      clearSelectedFile();
+      return;
+    }
+
+    if (file.size > maxFileSizeBytes) {
+      updateSttStatus('error', 'File too large', 'Please choose a file smaller than 50MB.');
+      clearSelectedFile();
+      return;
+    }
+
+    selectedFile = file;
+    fileName.textContent = file.name;
+    fileSize.textContent = formatFileSize(file.size);
+    fileInfo.classList.remove('hidden');
+    updateSttStatus('info', 'File ready', 'Click Convert to Text to start transcription.');
+  }
+
+  function resetTranscript() {
+    transcriptOutput.textContent = '[Transcript will appear here after conversion]';
+  }
+
+  chooseFileBtn.addEventListener('click', function(event) {
+    event.stopPropagation();
+    sttFileInput.click();
+  });
+
+  uploadArea.addEventListener('click', function() {
+    sttFileInput.click();
+  });
+
+  uploadArea.addEventListener('dragover', function(event) {
+    event.preventDefault();
+    uploadArea.classList.add('border-sky-400', 'bg-sky-50');
+  });
+
+  uploadArea.addEventListener('dragleave', function() {
+    uploadArea.classList.remove('border-sky-400', 'bg-sky-50');
+  });
+
+  uploadArea.addEventListener('drop', function(event) {
+    event.preventDefault();
+    uploadArea.classList.remove('border-sky-400', 'bg-sky-50');
+    updateSelectedFile(event.dataTransfer.files[0]);
+  });
+
+  sttFileInput.addEventListener('change', function() {
+    updateSelectedFile(this.files[0]);
+  });
+
+  removeFileBtn.addEventListener('click', function() {
+    clearSelectedFile();
+    updateSttStatus('info', 'Ready for conversion', 'Upload an MP3 or WAV file to see the transcript');
+  });
+
+  clearTranscriptBtn.addEventListener('click', function() {
+    resetTranscript();
+    updateSttStatus('info', 'Ready for conversion', 'Upload an MP3 or WAV file to see the transcript');
+  });
+
+  copyTranscriptBtn.addEventListener('click', async function() {
+    const transcriptText = transcriptOutput.textContent.trim();
+    if (!transcriptText || transcriptText === '[Transcript will appear here after conversion]') {
+      updateSttStatus('error', 'Nothing to copy', 'Generate a transcript before copying text.');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(transcriptText);
+      updateSttStatus('success', 'Transcript copied', 'The transcript has been copied to your clipboard.');
+    } catch (error) {
+      updateSttStatus('error', 'Copy failed', 'The transcript could not be copied.');
+    }
+  });
+
+  convertBtn.addEventListener('click', async function() {
+    if (!selectedFile) {
+      updateSttStatus('error', 'Audio file required', 'Please choose an MP3 or WAV file first.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('audio', selectedFile);
+
+    setConvertLoading(true);
+    updateSttStatus('loading', 'Transcribing audio', 'Whisper is processing your file.');
+    transcriptOutput.textContent = 'Transcribing audio...';
+
+    try {
+      const response = await fetch('/api/stt', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to transcribe audio right now.');
+      }
+
+      transcriptOutput.textContent = data.text || '[No speech detected in the audio]';
+      updateSttStatus('success', 'Transcript ready', 'The audio file was transcribed successfully.');
+    } catch (error) {
+      transcriptOutput.textContent = '[Transcript will appear here after conversion]';
+      updateSttStatus('error', 'Transcription failed', error.message || 'Something went wrong while transcribing the audio.');
+    } finally {
+      setConvertLoading(false);
+    }
+  });
+</script>
+{% endblock %}

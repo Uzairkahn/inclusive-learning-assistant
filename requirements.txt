@@ -1,0 +1,13 @@
+Flask
+flask-cors
+SpeechRecognition
+PyAudio
+pyttsx3
+gTTS
+PyPDF2
+python-docx
+python-pptx
+transformers
+torch
+googletrans==3.1.0a0
+openai-whisper
