@@ -13,6 +13,14 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
 from gtts.tts import gTTSError
 from werkzeug.exceptions import BadRequest
 
+from db import (
+    get_stats,
+    increment_audio,
+    increment_summaries,
+    increment_translations,
+    increment_uploads,
+    init_stats_table,
+)
 from utils.speech_to_text import (
     get_whisper_status,
     initialize_whisper_model,
@@ -55,12 +63,6 @@ TRANSLATOR = None
 TRANSLATOR_TOKENIZER = None
 TRANSLATOR_LOAD_ERROR = None
 TRANSLATOR_LOCK = Lock()
-STAT_COLUMN_MAP = {
-    "summaries": "summaries_count",
-    "uploads": "uploads_count",
-    "audio": "audio_count",
-    "translations": "translations_count",
-}
 
 
 def get_db_connection():
@@ -94,18 +96,6 @@ def init_db():
         )
     """)
 
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS usage_stats (
-            user_id INTEGER PRIMARY KEY,
-            summaries_count INTEGER NOT NULL DEFAULT 0,
-            uploads_count INTEGER NOT NULL DEFAULT 0,
-            audio_count INTEGER NOT NULL DEFAULT 0,
-            translations_count INTEGER NOT NULL DEFAULT 0,
-            updated_at TEXT,
-            FOREIGN KEY (user_id) REFERENCES users (id)
-        )
-    """)
-    
     # Save changes and close connection
     conn.commit()
     conn.close()
@@ -138,14 +128,6 @@ def create_user(email, password, name):
             "INSERT INTO users (email, password, name, created_at) VALUES (?, ?, ?, ?)",
             (email, hashed_pw, name, created_at)
         )
-        user_id = cur.lastrowid
-        cur.execute(
-            """
-            INSERT INTO usage_stats (user_id, updated_at)
-            VALUES (?, ?)
-            """,
-            (user_id, created_at),
-        )
         conn.commit()
         return True
     except sqlite3.IntegrityError:
@@ -170,77 +152,10 @@ def verify_user(email, password):
     conn.close()
     return user
 
-
-def ensure_usage_stats_row(cursor, user_id):
-    """
-    Ensure a stats row exists for the given user.
-    """
-    cursor.execute(
-        """
-        INSERT OR IGNORE INTO usage_stats (user_id, updated_at)
-        VALUES (?, ?)
-        """,
-        (user_id, datetime.now().isoformat()),
-    )
-
-
-def get_user_usage_stats(user_id):
-    """
-    Return persisted dashboard counters for a user.
-    """
-    conn = get_db_connection()
-    try:
-        cur = conn.cursor()
-        ensure_usage_stats_row(cur, user_id)
-        cur.execute(
-            """
-            SELECT summaries_count, uploads_count, audio_count, translations_count
-            FROM usage_stats
-            WHERE user_id = ?
-            """,
-            (user_id,),
-        )
-        row = cur.fetchone()
-        conn.commit()
-
-        return {
-            "summaries": int(row["summaries_count"]) if row else 0,
-            "uploads": int(row["uploads_count"]) if row else 0,
-            "audio": int(row["audio_count"]) if row else 0,
-            "translations": int(row["translations_count"]) if row else 0,
-        }
-    finally:
-        conn.close()
-
-
-def increment_usage_stat(user_id, stat_name):
-    """
-    Increment a single persisted usage counter for a user.
-    """
-    column_name = STAT_COLUMN_MAP.get(stat_name)
-    if column_name is None:
-        raise ValueError(f"Unsupported stat name: {stat_name}")
-
-    conn = get_db_connection()
-    try:
-        cur = conn.cursor()
-        ensure_usage_stats_row(cur, user_id)
-        cur.execute(
-            f"""
-            UPDATE usage_stats
-            SET {column_name} = {column_name} + 1,
-                updated_at = ?
-            WHERE user_id = ?
-            """,
-            (datetime.now().isoformat(), user_id),
-        )
-        conn.commit()
-    finally:
-        conn.close()
-
 # =============== DATABASE INITIALIZATION ===============
 # Call init_db() on app startup to ensure database exists and is properly configured
 init_db()
+init_stats_table()
 
 
 # =============== SUMMARIZATION SERVICE ===============
@@ -606,13 +521,14 @@ def about():
 @app.route("/api/dashboard-stats")
 def dashboard_stats():
     """
-    Dashboard Statistics API: Returns persisted usage counters for the logged-in user.
+    Dashboard Statistics API: Returns persisted application usage counters.
     """
     if 'user_id' not in session:
         return json_error("Please login first", 401)
 
     try:
-        stats = get_user_usage_stats(session['user_id'])
+        stats = get_stats()
+        app.logger.info("Dashboard stats loaded: %s", stats)
     except Exception:
         app.logger.exception("Failed to load dashboard stats")
         return json_error("Failed to load dashboard stats", 500)
@@ -661,7 +577,8 @@ def api_summarize():
         return json_error("Unable to generate a summary for the provided text", 500)
 
     try:
-        increment_usage_stat(session['user_id'], "summaries")
+        updated_stats = increment_summaries()
+        app.logger.info("Summary stats incremented: %s", updated_stats)
     except Exception:
         app.logger.exception("Failed to record summary usage")
 
@@ -709,7 +626,8 @@ def api_translate():
         return json_error("Unable to translate the provided text", 500)
 
     try:
-        increment_usage_stat(session['user_id'], "translations")
+        updated_stats = increment_translations()
+        app.logger.info("Translation stats incremented: %s", updated_stats)
     except Exception:
         app.logger.exception("Failed to record translation usage")
 
@@ -743,7 +661,8 @@ def api_upload():
             temp_file_path.unlink(missing_ok=True)
 
     try:
-        increment_usage_stat(session['user_id'], "uploads")
+        updated_stats = increment_uploads()
+        app.logger.info("Upload stats incremented: %s", updated_stats)
     except Exception:
         app.logger.exception("Failed to record upload usage")
 
@@ -792,7 +711,8 @@ def api_tts():
     audio_url = url_for("static", filename=f"audio/{filename}")
 
     try:
-        increment_usage_stat(session['user_id'], "audio")
+        updated_stats = increment_audio()
+        app.logger.info("Audio stats incremented: %s", updated_stats)
     except Exception:
         app.logger.exception("Failed to record audio usage")
 
