@@ -1,0 +1,8 @@
+fyp_env/
+__pycache__/
+*.pyc
+uploads/
+static/audio/
+logs/
+.cache/
+.idea/
