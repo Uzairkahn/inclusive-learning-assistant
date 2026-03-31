@@ -145,6 +145,17 @@
 
   <!-- =============== MAIN CONTENT AREA =============== -->
   <!-- Container for page-specific content (populated by child templates) -->
+  <div
+    id="globalLoadingOverlay"
+    class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/10 backdrop-blur-sm"
+    aria-hidden="true"
+  >
+    <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-3 shadow-lg">
+      <span class="h-5 w-5 rounded-full border-2 border-slate-200 border-t-sky-500 animate-spin"></span>
+      <span class="text-sm font-medium text-slate-700">Processing...</span>
+    </div>
+  </div>
+
   <main class="max-w-7xl mx-auto px-6 py-8">
     <!-- Template block: child pages insert their content here -->
     {% block content %}{% endblock %}
@@ -181,6 +192,99 @@
   <!-- =============== JAVASCRIPT INCLUDES =============== -->
   <!-- Main application JavaScript file -->
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script>
+    (function() {
+      const overlay = document.getElementById('globalLoadingOverlay');
+      const originalFetch = window.fetch ? window.fetch.bind(window) : null;
+      const apiControlSelector = '[data-api-action], [data-api-input]';
+      let activeApiRequests = 0;
+
+      if (!overlay || !originalFetch) {
+        return;
+      }
+
+      function isApiRequest(resource) {
+        const rawUrl = typeof resource === 'string'
+          ? resource
+          : (resource && resource.url) || '';
+
+        if (!rawUrl) {
+          return false;
+        }
+
+        try {
+          const parsedUrl = new URL(rawUrl, window.location.origin);
+          return parsedUrl.origin === window.location.origin && parsedUrl.pathname.startsWith('/api/');
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function toggleApiControls(isLoading) {
+        document.querySelectorAll(apiControlSelector).forEach((element) => {
+          if (isLoading) {
+            if (!Object.prototype.hasOwnProperty.call(element.dataset, 'apiLoadingWasDisabled')) {
+              element.dataset.apiLoadingWasDisabled = element.disabled ? 'true' : 'false';
+            }
+
+            element.disabled = true;
+            element.classList.add('opacity-70', 'cursor-not-allowed');
+            return;
+          }
+
+          const wasDisabled = element.dataset.apiLoadingWasDisabled === 'true';
+          delete element.dataset.apiLoadingWasDisabled;
+
+          if (!wasDisabled) {
+            element.disabled = false;
+          }
+
+          if (!element.disabled) {
+            element.classList.remove('opacity-70', 'cursor-not-allowed');
+          }
+        });
+      }
+
+      function updateGlobalLoadingUi(isLoading) {
+        overlay.classList.toggle('hidden', !isLoading);
+        overlay.classList.toggle('flex', isLoading);
+        overlay.setAttribute('aria-hidden', String(!isLoading));
+        document.body.classList.toggle('overflow-hidden', isLoading);
+        toggleApiControls(isLoading);
+        document.dispatchEvent(new CustomEvent('app:global-loading', {
+          detail: {
+            isLoading,
+            activeRequests: activeApiRequests,
+          },
+        }));
+      }
+
+      function beginApiRequest() {
+        activeApiRequests += 1;
+
+        if (activeApiRequests === 1) {
+          updateGlobalLoadingUi(true);
+        }
+      }
+
+      function endApiRequest() {
+        activeApiRequests = Math.max(0, activeApiRequests - 1);
+
+        if (activeApiRequests === 0) {
+          updateGlobalLoadingUi(false);
+        }
+      }
+
+      window.fetch = function(resource, init) {
+        if (!isApiRequest(resource)) {
+          return originalFetch(resource, init);
+        }
+
+        beginApiRequest();
+        return originalFetch(resource, init).finally(endApiRequest);
+      };
+    })();
+  </script>
   <!-- Template block: child pages can add their own scripts here -->
   {% block scripts %}{% endblock %}
 </body>

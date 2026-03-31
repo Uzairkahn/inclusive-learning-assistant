@@ -16,10 +16,11 @@
       >
         <p class="text-slate-700 font-medium mb-2">Drop your audio file here</p>
         <p class="text-slate-500 text-sm mb-4">or click to browse</p>
-        <input id="sttFileInput" type="file" accept=".mp3,.wav" class="hidden" />
+        <input id="sttFileInput" type="file" accept=".mp3,.wav" class="hidden" data-api-input />
         <button
           id="chooseFileBtn"
           type="button"
+          data-api-action
           class="px-6 py-3 bg-sky-500 text-white rounded-xl hover:bg-sky-600 transition-colors font-medium"
         >
           Choose File
@@ -42,6 +43,7 @@
       <button
         id="convertBtn"
         type="button"
+        data-api-action
         class="w-full mt-4 py-4 bg-gradient-to-r from-sky-500 to-sky-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-semibold flex items-center justify-center gap-2"
       >
         <span>Convert to Text</span>
