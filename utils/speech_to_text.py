@@ -1,4 +1,5 @@
 import shutil
+import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -11,7 +12,7 @@ except ImportError:  # pragma: no cover - depends on local environment
 
 
 ALLOWED_AUDIO_EXTENSIONS = {".mp3", ".wav"}
-WHISPER_MODEL_NAME = "base"
+WHISPER_MODEL_NAME = os.environ.get("WHISPER_MODEL_NAME", "base")
 WHISPER_MODEL = None
 WHISPER_LOAD_ERROR = None
 
@@ -82,13 +83,60 @@ def get_whisper_status():
     return WHISPER_MODEL, WHISPER_LOAD_ERROR
 
 
+def format_timestamp(seconds):
+    """
+    Convert seconds to SRT timestamp format (HH:MM:SS,mmm).
+    """
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = int(seconds % 60)
+    millis = int((seconds % 1) * 1000)
+    return f"{hours:02d}:{minutes:02d}:{secs:02d},{millis:03d}"
+
+
+def generate_srt(segments):
+    """
+    Generate SRT subtitle format from Whisper segments.
+    Args: segments - list of segment dicts with 'start', 'end', and 'text' keys
+    Returns: string containing SRT formatted subtitles
+    """
+    if not segments:
+        return ""
+
+    srt_lines = []
+    for idx, segment in enumerate(segments, 1):
+        start_time = format_timestamp(segment.get("start", 0))
+        end_time = format_timestamp(segment.get("end", 0))
+        text = segment.get("text", "").strip()
+
+        if text:
+            srt_lines.append(str(idx))
+            srt_lines.append(f"{start_time} --> {end_time}")
+            srt_lines.append(text)
+            srt_lines.append("")
+
+    return "\n".join(srt_lines)
+
+
 def transcribe_audio_file(file_path):
     """
     Transcribe the provided audio file with the globally loaded Whisper model.
+    Returns: tuple of (plain_text, srt_content)
     """
     if WHISPER_MODEL is None:
         error_message = str(WHISPER_LOAD_ERROR) if WHISPER_LOAD_ERROR else "Whisper model is unavailable"
         raise RuntimeError(error_message)
 
-    result = WHISPER_MODEL.transcribe(str(file_path), fp16=torch.cuda.is_available())
-    return (result.get("text") or "").strip()
+    result = WHISPER_MODEL.transcribe(
+        str(file_path),
+        fp16=torch.cuda.is_available(),
+        temperature=0,
+        beam_size=1,
+        condition_on_previous_text=False,
+        verbose=False,
+    )
+    plain_text = (result.get("text") or "").strip()
+    segments = result.get("segments", [])
+    srt_content = generate_srt(segments)
+
+    return (plain_text, srt_content)

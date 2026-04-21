@@ -112,18 +112,50 @@
           
           <!-- Sample Selector -->
           <div class="flex gap-2">
-            <button onclick="loadSample('english')" 
+            <button onclick="loadReadableSample('english')"
                     class="px-4 py-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">
               📚 English
             </button>
-            <button onclick="loadSample('urdu')" 
+            <button onclick="loadReadableSample('urdu')"
                     class="px-4 py-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">
               🌏 Urdu
             </button>
-            <button onclick="loadSample('technical')" 
+            <button onclick="loadReadableSample('technical')"
                     class="px-4 py-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">
               💻 Technical
             </button>
+          </div>
+        </div>
+
+        <!-- Document Upload -->
+        <div
+          id="readabilityUploadZone"
+          class="mb-6 border-2 border-dashed border-slate-300 rounded-xl p-4 hover:border-sky-400 transition-colors"
+        >
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <p class="font-medium text-slate-800">Use your own document</p>
+              <p class="text-sm text-slate-600 mt-1">Upload a PDF, DOCX, TXT, or PPTX file and adjust its readability here.</p>
+              <p id="readabilityFileName" class="text-xs text-slate-500 mt-2">No file selected</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <input id="readabilityFileInput" type="file" accept=".txt,.pdf,.docx,.pptx" class="hidden" data-api-input />
+              <button
+                id="readabilityChooseFileBtn"
+                type="button"
+                data-api-action
+                class="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm font-medium"
+              >
+                Choose File
+              </button>
+              <button
+                id="readabilityClearFileBtn"
+                type="button"
+                class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
+              >
+                Clear
+              </button>
+            </div>
           </div>
         </div>
 
@@ -183,7 +215,7 @@
       <div class="space-y-3">
         <div class="flex items-start gap-3">
           <span class="text-sky-500 font-bold">1</span>
-          <p>Select a sample text from English, Urdu, or Technical options</p>
+          <p>Select a sample text or upload your own PDF, DOCX, TXT, or PPTX file</p>
         </div>
         <div class="flex items-start gap-3">
           <span class="text-sky-500 font-bold">2</span>
@@ -281,10 +313,17 @@ Modern AI systems have evolved from simple rule-based algorithms to complex neur
 
 let currentTheme = 'default';
 let currentSettings = {};
+const allowedDocumentExtensions = ['.pdf', '.docx', '.txt', '.pptx'];
+const readabilityUploadZone = document.getElementById('readabilityUploadZone');
+const readabilityFileInput = document.getElementById('readabilityFileInput');
+const readabilityChooseFileBtn = document.getElementById('readabilityChooseFileBtn');
+const readabilityClearFileBtn = document.getElementById('readabilityClearFileBtn');
+const readabilityFileName = document.getElementById('readabilityFileName');
+const chooseFileButtonMarkup = readabilityChooseFileBtn.innerHTML;
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
-  loadSample('english');
+  loadReadableSample('english');
   updateSliderValues();
   selectTheme('default');
 });
@@ -293,6 +332,84 @@ document.addEventListener('DOMContentLoaded', function() {
 function updateSliderValues() {
   document.getElementById('fontSizeValue').textContent = document.getElementById('fontSize').value + 'px';
   document.getElementById('spacingValue').textContent = document.getElementById('lineSpacing').value;
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[char]));
+}
+
+function detectUrduText(value) {
+  return /[\u0600-\u06FF]/.test(value);
+}
+
+function formatInlineMarkdown(value) {
+  return escapeHtml(value).replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold">$1</strong>');
+}
+
+function applyThemeTextColors(theme) {
+  const previewBox = document.getElementById('previewBox');
+  const textColor = theme === 'high-contrast' ? '#ffffff' : '#334155';
+  const headingColor = theme === 'high-contrast' ? '#ffffff' : '#0f172a';
+  const subHeadingColor = theme === 'high-contrast' ? '#f8fafc' : '#334155';
+
+  previewBox.querySelectorAll('[data-readable-text]').forEach((element) => {
+    element.style.color = textColor;
+  });
+  previewBox.querySelectorAll('[data-readable-heading="main"]').forEach((element) => {
+    element.style.color = headingColor;
+  });
+  previewBox.querySelectorAll('[data-readable-heading="section"]').forEach((element) => {
+    element.style.color = subHeadingColor;
+  });
+}
+
+function renderReadableContent(title, content, options = {}) {
+  const previewBox = document.getElementById('previewBox');
+  const isUrdu = options.language === 'ur' || detectUrduText(`${title} ${content}`);
+  const direction = isUrdu ? 'rtl' : 'ltr';
+  const languageAttribute = isUrdu ? ' lang="ur"' : '';
+  const alignmentClass = isUrdu ? 'text-right' : 'text-justify';
+  const safeTitle = escapeHtml(title || 'Readable Document');
+  let contentHTML = '';
+
+  content.split('\n').forEach((line) => {
+    const trimmedLine = line.trim();
+
+    if (trimmedLine.startsWith('# ')) {
+      contentHTML += `<h1 data-readable-heading="section" class="text-3xl font-bold mt-8 mb-6 border-b border-slate-200 pb-2">${formatInlineMarkdown(trimmedLine.substring(2))}</h1>`;
+    } else if (trimmedLine.startsWith('## ')) {
+      contentHTML += `<h2 data-readable-heading="section" class="text-2xl font-semibold mt-6 mb-4">${formatInlineMarkdown(trimmedLine.substring(3))}</h2>`;
+    } else if (trimmedLine.startsWith('### ')) {
+      contentHTML += `<h3 data-readable-heading="section" class="text-xl font-medium mt-5 mb-3">${formatInlineMarkdown(trimmedLine.substring(4))}</h3>`;
+    } else if (/^\d+\.\s+/.test(trimmedLine)) {
+      contentHTML += `<li data-readable-text class="ml-6 mb-3 leading-relaxed">${formatInlineMarkdown(trimmedLine.replace(/^\d+\.\s+/, ''))}</li>`;
+    } else if (trimmedLine.startsWith('- ')) {
+      contentHTML += `<li data-readable-text class="ml-6 mb-3 leading-relaxed">${formatInlineMarkdown(trimmedLine.substring(2))}</li>`;
+    } else if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+      contentHTML += `<p data-readable-text class="mb-4"><strong class="font-bold">${formatInlineMarkdown(trimmedLine.substring(2, trimmedLine.length - 2))}</strong></p>`;
+    } else if (trimmedLine === '') {
+      contentHTML += '<div class="h-4"></div>';
+    } else {
+      contentHTML += `<p data-readable-text class="mb-4 leading-relaxed">${formatInlineMarkdown(trimmedLine)}</p>`;
+    }
+  });
+
+  previewBox.innerHTML = `
+    <div dir="${direction}"${languageAttribute} class="max-w-4xl mx-auto ${alignmentClass}">
+      <h1 data-readable-heading="main" class="text-4xl font-bold mb-8 text-center border-b border-slate-300 pb-4">${safeTitle}</h1>
+      <div class="prose max-w-none ${alignmentClass}">
+        ${contentHTML}
+      </div>
+    </div>
+  `;
+
+  applySettingsLive();
 }
 
 // Load sample text
@@ -337,6 +454,17 @@ function loadSample(type) {
   }
 }
 
+function loadReadableSample(type) {
+  const sample = samples[type];
+  if (!sample) {
+    return;
+  }
+
+  readabilityFileInput.value = '';
+  readabilityFileName.textContent = 'No file selected';
+  renderReadableContent(sample.title, sample.content);
+}
+
 // Select color theme
 function selectTheme(theme) {
   currentTheme = theme;
@@ -374,24 +502,32 @@ function selectTheme(theme) {
       previewBox.style.color = '#ffffff';
       break;
   }
-  
+
+  applyThemeTextColors(theme);
   currentSettings.theme = theme;
 }
 
-// Apply all settings
-function applySettings() {
+function getSelectedSettings() {
   const fontSize = document.getElementById('fontSize').value;
   const lineSpacing = document.getElementById('lineSpacing').value;
   const useDyslexicFont = document.getElementById('dyslexicToggle').checked;
-  
-  currentSettings = {
+
+  return {
     fontSize,
     lineSpacing,
     useDyslexicFont,
     theme: currentTheme
   };
-  
+}
+
+function applySettingsLive() {
+  currentSettings = getSelectedSettings();
   applyCurrentSettings();
+}
+
+// Apply all settings
+function applySettings() {
+  applySettingsLive();
   showNotification('Accessibility settings applied successfully!');
 }
 
@@ -430,15 +566,90 @@ function resetSettings() {
   
   updateSliderValues();
   selectTheme('default');
-  
-  currentSettings = {};
+
+  currentSettings = getSelectedSettings();
   applyCurrentSettings();
   
   showNotification('All settings reset to default values');
 }
 
+function setUploadLoading(isLoading) {
+  readabilityChooseFileBtn.disabled = isLoading;
+  readabilityClearFileBtn.disabled = isLoading;
+  readabilityFileInput.disabled = isLoading;
+  readabilityChooseFileBtn.classList.toggle('opacity-70', isLoading);
+  readabilityClearFileBtn.classList.toggle('opacity-70', isLoading);
+  readabilityChooseFileBtn.classList.toggle('cursor-not-allowed', isLoading);
+  readabilityClearFileBtn.classList.toggle('cursor-not-allowed', isLoading);
+  readabilityUploadZone.classList.toggle('opacity-70', isLoading);
+  readabilityChooseFileBtn.innerHTML = isLoading ? 'Loading...' : chooseFileButtonMarkup;
+}
+
+function setUploadZoneActive(isActive) {
+  readabilityUploadZone.classList.toggle('border-sky-400', isActive);
+  readabilityUploadZone.classList.toggle('bg-sky-50', isActive);
+}
+
+function isSupportedDocument(file) {
+  const lowerName = file.name.toLowerCase();
+  return allowedDocumentExtensions.some((extension) => lowerName.endsWith(extension));
+}
+
+async function handleReadabilityUpload(file) {
+  if (!file) {
+    return;
+  }
+
+  if (!isSupportedDocument(file)) {
+    readabilityFileName.textContent = 'No file selected';
+    readabilityFileInput.value = '';
+    showNotification('Please choose a PDF, DOCX, TXT, or PPTX file.', 'error');
+    return;
+  }
+
+  if (file.size === 0) {
+    readabilityFileName.textContent = 'No file selected';
+    readabilityFileInput.value = '';
+    showNotification('Please choose a non-empty document.', 'error');
+    return;
+  }
+
+  readabilityFileName.textContent = file.name;
+  setUploadLoading(true);
+  showNotification('Reading document text...', 'info');
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || 'Unable to extract text from this file.');
+    }
+
+    const extractedText = data.text || '';
+    if (!extractedText.trim()) {
+      throw new Error('No readable text found in the uploaded file.');
+    }
+
+    renderReadableContent(file.name, extractedText);
+    showNotification('Document loaded into readability preview.');
+  } catch (error) {
+    showNotification(error.message || 'Something went wrong while reading the file.', 'error');
+  } finally {
+    setUploadLoading(false);
+    readabilityFileInput.value = '';
+    setUploadZoneActive(false);
+  }
+}
+
 // Show notification
-function showNotification(message) {
+function showNotification(message, type = 'success') {
   // Remove existing notification
   const existingNotification = document.querySelector('.notification-toast');
   if (existingNotification) {
@@ -446,7 +657,8 @@ function showNotification(message) {
   }
   
   const notification = document.createElement('div');
-  notification.className = 'notification-toast fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-32 transition-transform duration-300';
+  const toneClass = type === 'error' ? 'bg-red-500' : (type === 'info' ? 'bg-sky-500' : 'bg-green-500');
+  notification.className = `notification-toast fixed top-4 right-4 ${toneClass} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-32 transition-transform duration-300`;
   notification.textContent = message;
   
   document.body.appendChild(notification);
@@ -468,8 +680,64 @@ function showNotification(message) {
 }
 
 // Event listeners for real-time updates
-document.getElementById('fontSize').addEventListener('input', updateSliderValues);
-document.getElementById('lineSpacing').addEventListener('input', updateSliderValues);
+document.getElementById('fontSize').addEventListener('input', function() {
+  updateSliderValues();
+  applySettingsLive();
+});
+document.getElementById('lineSpacing').addEventListener('input', function() {
+  updateSliderValues();
+  applySettingsLive();
+});
+document.getElementById('dyslexicToggle').addEventListener('change', applySettingsLive);
+
+readabilityChooseFileBtn.addEventListener('click', function(event) {
+  event.stopPropagation();
+  if (!readabilityFileInput.disabled) {
+    readabilityFileInput.click();
+  }
+});
+
+readabilityClearFileBtn.addEventListener('click', function(event) {
+  event.stopPropagation();
+  loadReadableSample('english');
+  showNotification('Readability preview reset to the English sample.', 'info');
+});
+
+readabilityUploadZone.addEventListener('click', function() {
+  if (!readabilityFileInput.disabled) {
+    readabilityFileInput.click();
+  }
+});
+
+readabilityUploadZone.addEventListener('dragover', function(event) {
+  event.preventDefault();
+  if (!readabilityFileInput.disabled) {
+    setUploadZoneActive(true);
+  }
+});
+
+readabilityUploadZone.addEventListener('dragleave', function(event) {
+  if (!readabilityUploadZone.contains(event.relatedTarget)) {
+    setUploadZoneActive(false);
+  }
+});
+
+readabilityUploadZone.addEventListener('drop', function(event) {
+  event.preventDefault();
+  setUploadZoneActive(false);
+
+  if (readabilityFileInput.disabled) {
+    return;
+  }
+
+  const file = event.dataTransfer.files && event.dataTransfer.files[0];
+  handleReadabilityUpload(file);
+});
+
+readabilityFileInput.addEventListener('change', function() {
+  const file = this.files && this.files[0];
+  handleReadabilityUpload(file);
+});
 </script>
 
 <style>

@@ -1,4 +1,5 @@
 from datetime import datetime
+from hashlib import sha256
 from pathlib import Path
 from uuid import uuid4
 
@@ -37,10 +38,14 @@ def ensure_audio_directory(base_dir):
     return audio_dir
 
 
-def build_audio_filename(lang):
+def build_audio_filename(lang, text=None):
     """
     Generate a unique filename for each TTS request.
     """
+    if text:
+        digest = sha256(f"{lang}\n{text}".encode("utf-8")).hexdigest()[:16]
+        return f"tts_{lang}_{digest}.mp3"
+
     timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
     return f"tts_{lang}_{timestamp}_{uuid4().hex[:8]}.mp3"
 
@@ -57,8 +62,10 @@ def generate_tts_audio(text, lang, output_dir):
     audio_dir = Path(output_dir)
     audio_dir.mkdir(parents=True, exist_ok=True)
 
-    filename = build_audio_filename(normalized_lang)
+    filename = build_audio_filename(normalized_lang, normalized_text)
     output_path = audio_dir / filename
+    if output_path.exists() and output_path.stat().st_size > 0:
+        return output_path, filename
 
     speech = gTTS(text=normalized_text, lang=normalized_lang, slow=False)
     speech.save(str(output_path))

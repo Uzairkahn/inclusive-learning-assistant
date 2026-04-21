@@ -16,8 +16,8 @@
             class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-sky-400 transition-colors cursor-pointer"
           >
             <div class="text-sm font-medium text-slate-700 mb-2">Extract text from a document</div>
-            <p class="text-slate-600 text-sm mb-3">Choose or drop a PDF, DOCX, or TXT file and its text will be loaded into the textarea automatically.</p>
-            <input id="documentUpload" type="file" accept=".txt,.pdf,.docx" class="hidden" data-api-input />
+            <p class="text-slate-600 text-sm mb-3">Choose or drop a PDF, DOCX, TXT, or PPTX file and its full readable text will be loaded into the textarea automatically.</p>
+            <input id="documentUpload" type="file" accept=".txt,.pdf,.docx,.pptx" class="hidden" data-api-input />
             <button
               id="chooseFileBtn"
               type="button"
@@ -27,7 +27,7 @@
               Choose File
             </button>
             <p id="selectedFileName" class="text-xs text-slate-500 mt-3">No file selected</p>
-            <p class="text-xs text-slate-400 mt-1">TXT, PDF, DOCX supported</p>
+            <p class="text-xs text-slate-400 mt-1">TXT, PDF, DOCX, PPTX supported</p>
           </div>
         </div>
 
@@ -37,6 +37,7 @@
             <option value="en">English</option>
             <option value="ur">Urdu</option>
           </select>
+          <p class="text-xs text-slate-500 mt-2">Urdu selected with English text will be translated before audio generation.</p>
         </div>
 
         <div>
@@ -147,7 +148,7 @@
   const audioOutput = document.getElementById('audioOutput');
   const speakButtonMarkup = speakTextBtn.innerHTML;
   const chooseFileButtonMarkup = chooseFileBtn.innerHTML;
-  const allowedDocumentExtensions = ['.pdf', '.docx', '.txt'];
+  const allowedDocumentExtensions = ['.pdf', '.docx', '.txt', '.pptx'];
 
   function escapeHtml(value) {
     return value.replace(/[&<>"']/g, (char) => ({
@@ -271,8 +272,8 @@
     if (!isSupportedDocument(file)) {
       console.debug('[TTS upload] Unsupported file type:', file.name);
       selectedFileName.textContent = 'No file selected';
-      updateTtsStatus('error', 'Unsupported file type', 'Please choose a PDF, DOCX, or TXT file.');
-      renderAudioPlaceholder('Please choose a PDF, DOCX, or TXT file.', true);
+      updateTtsStatus('error', 'Unsupported file type', 'Please choose a PDF, DOCX, TXT, or PPTX file.');
+      renderAudioPlaceholder('Please choose a PDF, DOCX, TXT, or PPTX file.', true);
       return;
     }
 
@@ -306,8 +307,8 @@
 
       ttsInput.value = data.text || '';
       updateCharCount();
-      updateTtsStatus('success', 'Text extracted', 'Document text has been loaded into the input area.');
-      renderAudioPlaceholder('Document text loaded. Click Generate Audio when you are ready.');
+      updateTtsStatus('success', 'Text extracted', 'Full document text has been loaded into the input area.');
+      renderAudioPlaceholder('Full document text loaded. Click Generate Audio when you are ready.');
       ttsInput.focus();
       console.debug('[TTS upload] Extraction successful. Characters loaded:', ttsInput.value.length);
     } catch (error) {
@@ -423,7 +424,14 @@
       }
 
       renderAudioPlayer(data.audio_url);
-      updateTtsStatus('success', 'Audio generated', 'Your speech file is ready and should start playing automatically.');
+      if (data.translated && data.spoken_text) {
+        ttsInput.value = data.spoken_text;
+        langSelect.value = 'ur';
+        updateCharCount();
+        updateTtsStatus('success', 'Urdu audio generated', 'English text was translated to Urdu before audio generation.');
+      } else {
+        updateTtsStatus('success', 'Audio generated', 'Your speech file is ready and should start playing automatically.');
+      }
     } catch (error) {
       updateTtsStatus('error', 'Audio generation failed', error.message || 'Something went wrong while generating audio.');
       renderAudioPlaceholder(error.message || 'Something went wrong while generating audio.', true);

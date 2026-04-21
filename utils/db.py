@@ -2,7 +2,7 @@
 import sqlite3
 from pathlib import Path
 from datetime import datetime
-import hashlib
+import bcrypt
 
 DB_PATH = Path(__file__).resolve().parent.parent / "data" / "users.db"
 
@@ -38,7 +38,7 @@ def init_db():
     conn.close()
 
 def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 
 def create_user(email, password, name):
     conn = sqlite3.connect(DB_PATH)
@@ -60,8 +60,19 @@ def create_user(email, password, name):
 def verify_user(email, password):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    hashed_pw = hash_password(password)
-    cur.execute("SELECT id, name FROM users WHERE email = ? AND password = ?", (email, hashed_pw))
+    cur.execute("SELECT id, name, password FROM users WHERE email = ?", (email,))
     user = cur.fetchone()
     conn.close()
-    return user  # Returns (id, name) if valid, else None
+    
+    if user:
+        user_id, name, stored_hash = user
+        try:
+            # Convert stored_hash to bytes if it's a string (for bcrypt compatibility)
+            if isinstance(stored_hash, str):
+                stored_hash = stored_hash.encode()
+            if bcrypt.checkpw(password.encode(), stored_hash):
+                return (user_id, name)
+        except (ValueError, TypeError):
+            pass
+    
+    return None

@@ -30,8 +30,8 @@
             class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-sky-400 transition-colors cursor-pointer"
           >
             <div class="text-sm font-medium text-slate-700 mb-2">Extract text from a document</div>
-            <p class="text-slate-600 text-sm mb-3">Choose or drop a PDF, DOCX, or TXT file and its text will be loaded into the textarea automatically.</p>
-            <input id="documentUpload" type="file" accept=".txt,.pdf,.docx" class="hidden" data-api-input />
+            <p class="text-slate-600 text-sm mb-3">Choose or drop a PDF, DOCX, TXT, or PPTX file and its text will be loaded into the textarea automatically.</p>
+            <input id="documentUpload" type="file" accept=".txt,.pdf,.docx,.pptx" class="hidden" data-api-input />
             <button
               id="chooseFileBtn"
               type="button"
@@ -41,7 +41,7 @@
               Choose File
             </button>
             <p id="selectedFileName" class="text-xs text-slate-500 mt-3">No file selected</p>
-            <p class="text-xs text-slate-400 mt-1">TXT, PDF, DOCX supported</p>
+            <p class="text-xs text-slate-400 mt-1">TXT, PDF, DOCX, PPTX supported</p>
           </div>
         </div>
 
@@ -122,8 +122,8 @@
       </div>
       <div class="flex items-start gap-3">
         <div>
-          <p class="font-medium text-slate-800">Future Translation Flow</p>
-          <p class="text-sm text-slate-600">The page still reserves space for translation once a backend endpoint is added.</p>
+          <p class="font-medium text-slate-800">Urdu Translation</p>
+          <p class="text-sm text-slate-600">Translate extracted text or generated summaries into readable Urdu.</p>
         </div>
       </div>
     </div>
@@ -148,9 +148,10 @@
   const translateButtonMarkup = transBtn.innerHTML;
   const chooseFileButtonMarkup = chooseFileBtn.innerHTML;
   const defaultResultMarkup = '<p class="text-slate-500 text-center py-8">Your summarized text will appear here.</p>';
-  const allowedDocumentExtensions = ['.pdf', '.docx', '.txt'];
+  const allowedDocumentExtensions = ['.pdf', '.docx', '.txt', '.pptx'];
   let currentResultText = '';
   let currentResultState = 'placeholder';
+  let currentResultLanguage = null;
 
   function escapeHtml(value) {
     return value.replace(/[&<>"']/g, (char) => ({
@@ -207,18 +208,26 @@
     `;
   }
 
-  function updateResult(content, isError = false) {
+  function updateResult(content, isError = false, options = {}) {
     const textColor = isError ? 'text-red-700' : 'text-slate-700';
-    currentResultText = isError ? '' : content;
-    currentResultState = isError ? 'error' : 'content';
+    const language = options.language || 'en';
+    const isUrdu = language === 'ur';
+    const direction = isUrdu ? 'rtl' : 'ltr';
+    const languageAttribute = isUrdu ? ' lang="ur"' : '';
+    const layoutClasses = isUrdu ? 'text-right leading-8 text-lg' : 'text-left';
+    const isTransient = options.transient === true;
+    currentResultText = isError || isTransient ? '' : content;
+    currentResultState = isError ? 'error' : (isTransient ? 'loading' : 'content');
+    currentResultLanguage = isError || isTransient ? null : language;
     resultBox.innerHTML = `
-      <p class="${textColor} whitespace-pre-wrap">${escapeHtml(content)}</p>
+      <p dir="${direction}"${languageAttribute} class="${textColor} ${layoutClasses} whitespace-pre-wrap">${escapeHtml(content)}</p>
     `;
   }
 
   function resetResultBox(message = 'Your summarized text will appear here.') {
     currentResultText = '';
     currentResultState = 'placeholder';
+    currentResultLanguage = null;
     resultBox.innerHTML = `<p class="text-slate-500 text-center py-8">${escapeHtml(message)}</p>`;
   }
 
@@ -265,7 +274,7 @@
   }
 
   function getTextForTranslation() {
-    if (currentResultState === 'content' && currentResultText.trim()) {
+    if (currentResultState === 'content' && currentResultLanguage !== 'ur' && currentResultText.trim()) {
       return currentResultText.trim();
     }
 
@@ -279,8 +288,8 @@
 
     if (!isSupportedDocument(file)) {
       selectedFileName.textContent = 'No file selected';
-      updateStatus('error', 'Unsupported file type', 'Please choose a PDF, DOCX, or TXT file.');
-      updateResult('Please choose a PDF, DOCX, or TXT file.', true);
+      updateStatus('error', 'Unsupported file type', 'Please choose a PDF, DOCX, TXT, or PPTX file.');
+      updateResult('Please choose a PDF, DOCX, TXT, or PPTX file.', true);
       return;
     }
 
@@ -298,6 +307,7 @@
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('max_chars', '30000');
 
     try {
       const response = await fetch('/api/upload', {
@@ -312,8 +322,13 @@
 
       sourceText.value = data.text || '';
       updateCharCount();
-      updateStatus('success', 'Text extracted', 'Document text has been loaded into the input area.');
-      resetResultBox('Document text loaded. Click Summarize when you are ready.');
+      if (data.truncated) {
+        updateStatus('success', 'Text extracted', 'Document text was shortened for faster summarization.');
+        resetResultBox('Document text loaded with a speed-friendly limit. Click Summarize when you are ready.');
+      } else {
+        updateStatus('success', 'Text extracted', 'Document text has been loaded into the input area.');
+        resetResultBox('Document text loaded. Click Summarize when you are ready.');
+      }
       sourceText.focus();
     } catch (error) {
       updateStatus('error', 'Upload failed', error.message || 'Something went wrong while reading the file.');
@@ -390,7 +405,7 @@
 
     setSummarizeLoading(true);
     updateStatus('loading', 'Generating summary', 'AI is processing your text.');
-    updateResult('Preparing your summary...');
+    updateResult('Preparing your summary...', false, { transient: true });
 
     try {
       const response = await fetch('/api/summarize', {
@@ -428,7 +443,7 @@
 
     setTranslateLoading(true);
     updateStatus('loading', 'Translating to Urdu', 'AI is translating your selected text.');
-    updateResult('Preparing your Urdu translation...');
+    updateResult('Preparing your Urdu translation...', false, { transient: true });
 
     fetch('/api/translate', {
       method: 'POST',
@@ -444,7 +459,7 @@
         }
 
         updateStatus('success', 'Translation complete', 'Urdu translation generated successfully.');
-        updateResult(data.translated_text || 'No translated text was returned by the server.');
+        updateResult(data.translated_text || 'No translated text was returned by the server.', false, { language: 'ur' });
       })
       .catch((error) => {
         updateStatus('error', 'Translation failed', error.message || 'Something went wrong while translating.');
