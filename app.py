@@ -595,9 +595,64 @@ def generate_translation(text):
     return final_translation
 
 
-initialize_summarizer()
-initialize_translator()
-initialize_whisper_model()
+# =============== LAZY MODEL INITIALIZATION ===============
+# Models are NO LONGER loaded at startup - they load on first API call
+# This allows the app to start immediately without waiting for heavy model downloads
+
+def ensure_summarizer_loaded():
+    """
+    Lazy-load summarizer model on first API call.
+    Returns True if loaded or already available, False if unable to load.
+    """
+    global SUMMARIZER, SUMMARIZER_TOKENIZER, SUMMARIZER_LOAD_ERROR
+    
+    if SUMMARIZER is not None or SUMMARIZER_LOAD_ERROR is not None:
+        # Already attempted to load (either success or failure)
+        return SUMMARIZER is not None
+    
+    with SUMMARIZER_LOCK:
+        # Double-check after acquiring lock
+        if SUMMARIZER is not None or SUMMARIZER_LOAD_ERROR is not None:
+            return SUMMARIZER is not None
+        
+        initialize_summarizer()
+        return SUMMARIZER is not None
+
+
+def ensure_translator_loaded():
+    """
+    Lazy-load translator model on first API call.
+    Returns True if loaded or already available, False if unable to load.
+    """
+    global TRANSLATOR, TRANSLATOR_TOKENIZER, TRANSLATOR_LOAD_ERROR
+    
+    if TRANSLATOR is not None or TRANSLATOR_LOAD_ERROR is not None:
+        # Already attempted to load (either success or failure)
+        return TRANSLATOR is not None
+    
+    with TRANSLATOR_LOCK:
+        # Double-check after acquiring lock
+        if TRANSLATOR is not None or TRANSLATOR_LOAD_ERROR is not None:
+            return TRANSLATOR is not None
+        
+        initialize_translator()
+        return TRANSLATOR is not None
+
+
+def ensure_whisper_loaded():
+    """
+    Lazy-load Whisper model on first API call.
+    Returns True if loaded, False if unable to load.
+    """
+    whisper_model, whisper_error = get_whisper_status()
+    if whisper_model is not None or whisper_error is not None:
+        # Already attempted to load (either success or failure)
+        return whisper_model is not None
+    
+    # First-time load
+    initialize_whisper_model()
+    whisper_model, whisper_error = get_whisper_status()
+    return whisper_model is not None
 
 # =============== AUTHENTICATION ROUTES ===============
 # These routes handle user login, registration, and logout
@@ -771,7 +826,8 @@ def api_summarize():
     if not normalized_text:
         return json_error("Text input cannot be empty", 400)
 
-    if SUMMARIZER is None:
+    # Lazy-load summarizer on first API call
+    if not ensure_summarizer_loaded():
         app.logger.error("Summarizer unavailable: %s", SUMMARIZER_LOAD_ERROR)
         return json_error("Summarization model is unavailable. Please try again later.", 503)
 
@@ -823,7 +879,8 @@ def api_translate():
     if not normalized_text:
         return json_error("Text input cannot be empty", 400)
 
-    if TRANSLATOR is None:
+    # Lazy-load translator on first API call
+    if not ensure_translator_loaded():
         error_msg = str(TRANSLATOR_LOAD_ERROR) if TRANSLATOR_LOAD_ERROR else "Unknown error"
         app.logger.error("Translator unavailable: %s", error_msg)
         return json_error("Translation model is unavailable. Please try again later.", 503)
@@ -940,7 +997,8 @@ def api_tts():
         return json_error("Text input cannot be empty", 400)
 
     if normalized_lang == "ur" and not contains_urdu_script(text_for_audio):
-        if TRANSLATOR is None:
+        # Lazy-load translator for Urdu auto-translation
+        if not ensure_translator_loaded():
             app.logger.error("Translator unavailable for Urdu TTS: %s", TRANSLATOR_LOAD_ERROR)
             return json_error(
                 "Urdu auto-translation is unavailable. Please paste Urdu text or try again later.",
@@ -993,8 +1051,9 @@ def api_stt():
     if 'user_id' not in session:
         return json_error("Please login first", 401)
 
-    whisper_model, whisper_error = get_whisper_status()
-    if whisper_model is None:
+    # Lazy-load Whisper model on first API call
+    if not ensure_whisper_loaded():
+        whisper_model, whisper_error = get_whisper_status()
         app.logger.error("Whisper unavailable: %s", whisper_error)
         return json_error("Speech-to-text model is unavailable. Please check Whisper and ffmpeg setup.", 503)
 
@@ -1074,4 +1133,8 @@ if __name__ == "__main__":
     Note: Only for development! Do NOT use in production.
     Access app at: http://127.0.0.1:5000
     """
+
+    print("🚀 Starting Flask App...")
+    print("✅ Models will be loaded on first API call (lazy loading enabled)")
+    print("📍 Flask server starting at http://127.0.0.1:5000")
     app.run(debug=True)
